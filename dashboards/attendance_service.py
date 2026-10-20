@@ -200,7 +200,7 @@ def get_teacher_attendance_roster(teacher: User, subject_id: Optional[int] = Non
     if subject_id:
         selected_subject = assigned_subjects.filter(id=subject_id).first()
     if not selected_subject and assigned_subjects.exists():
-        selected_subject = assigned_subjects.first()
+        selected_subject = assigned_subjects.filter(branch=dept).first() or assigned_subjects.first()
 
     # Students enrolled in this subject or belonging to branch & semester
     if selected_subject:
@@ -209,7 +209,7 @@ def get_teacher_attendance_roster(teacher: User, subject_id: Optional[int] = Non
             Q(enrolled_subjects=selected_subject) |
             Q(student_profile__branch=selected_subject.branch, student_profile__semester=selected_subject.semester),
             role=Role.STUDENT.value
-        ).distinct().select_related("student_profile").order_by("student_profile__public_id", "full_name")
+        ).distinct().select_related("student_profile").order_by("public_id", "full_name")
     else:
         students_qs = User.objects.filter(
             role=Role.STUDENT.value,

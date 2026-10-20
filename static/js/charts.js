@@ -584,6 +584,20 @@
 
       wrap.appendChild(legend);
       container.appendChild(wrap);
+    },
+
+    /**
+     * Render an animated Pie Chart (solid sector filling).
+     * segments: [{ label: 'Pass', value: 75, color: '#10B981' }, { label: 'Fail', value: 25, color: '#EF4444' }]
+     */
+    renderPieChart: function (container, segments, options) {
+      const opts = Object.assign({
+        size: 160,
+        strokeWidth: 32,
+        centerText: '',
+        centerLabel: ''
+      }, options || {});
+      return this.renderDonutChart(container, segments, opts);
     }
   };
 

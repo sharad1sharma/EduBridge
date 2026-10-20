@@ -81,6 +81,211 @@ body[data-role="admin"] {
   --accent-light: #F1F5F9;
 }
 
+/* ==========================================================================
+   Dark Mode Theme System (Supports Student, Teacher, and Admin)
+   ========================================================================== */
+[data-theme="dark"],
+html[data-theme="dark"],
+body[data-theme="dark"] {
+  /* Dark Surface & Base Canvas */
+  --bg-canvas: #0B0F19;
+  --bg-canvas-subtle: #151D2F;
+  --surface-card: #1A2234;
+  --surface-hover: #232E45;
+  --border-subtle: rgba(51, 65, 85, 0.7);
+  --border-strong: #334155;
+
+  /* Typography Colors */
+  --text-main: #F8FAFC;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
+  --text-inverse: #0B0F19;
+
+  /* Shadows in Dark Mode */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-card: 0 8px 24px -4px rgba(0, 0, 0, 0.4), 0 2px 6px -2px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 12px 32px -4px rgba(0, 0, 0, 0.6), 0 4px 12px -2px rgba(0, 0, 0, 0.4);
+  --shadow-elevated: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+
+  /* Status Tokens in Dark Mode */
+  --status-active-bg: rgba(16, 185, 129, 0.15);
+  --status-active-text: #34D399;
+  --status-active-border: rgba(16, 185, 129, 0.3);
+
+  --status-pending-bg: rgba(245, 158, 11, 0.15);
+  --status-pending-text: #FBBF24;
+  --status-pending-border: rgba(245, 158, 11, 0.3);
+
+  --status-alert-bg: rgba(239, 68, 68, 0.15);
+  --status-alert-text: #F87171;
+  --status-alert-border: rgba(239, 68, 68, 0.3);
+
+  /* Primary Accent Adjustments for Dark Backgrounds */
+  --primary-light: rgba(59, 130, 246, 0.18);
+  --accent-light: rgba(59, 130, 246, 0.18);
+}
+
+[data-theme="dark"] body[data-role="teacher"] {
+  --primary-light: rgba(99, 102, 241, 0.2);
+  --accent-light: rgba(99, 102, 241, 0.2);
+}
+
+[data-theme="dark"] body[data-role="admin"] {
+  --primary-light: rgba(37, 99, 235, 0.2);
+  --accent-light: rgba(37, 99, 235, 0.2);
+}
+
+/* Dark Mode Component Overrides */
+[data-theme="dark"] .topbar {
+  background: rgba(15, 23, 42, 0.95);
+  border-bottom-color: var(--border-subtle);
+}
+
+[data-theme="dark"] .search-pill-container {
+  background: #151D2F;
+  border-color: var(--border-subtle);
+}
+
+[data-theme="dark"] .search-pill-input {
+  color: var(--text-main);
+}
+
+[data-theme="dark"] .icon-action-btn {
+  background: #1E293B;
+  color: var(--text-main);
+  border-color: var(--border-subtle);
+}
+
+[data-theme="dark"] .icon-action-btn:hover {
+  background: #334155;
+  color: #FFFFFF;
+}
+
+[data-theme="dark"] .who {
+  background: #1E293B;
+  border-color: var(--border-subtle);
+  color: var(--text-main);
+}
+
+[data-theme="dark"] .account-pill-btn {
+  background: #1E293B;
+  border-color: var(--border-subtle);
+  color: var(--text-main);
+}
+
+[data-theme="dark"] .account-pill-btn:hover {
+  background: #334155;
+}
+
+[data-theme="dark"] .card,
+[data-theme="dark"] .analytics-chart-panel,
+[data-theme="dark"] .analytics-metric-card,
+[data-theme="dark"] .hub-card,
+[data-theme="dark"] .hub-kpi-card,
+[data-theme="dark"] .attendance-kpi-card,
+[data-theme="dark"] .coding-mgmt-section,
+[data-theme="dark"] .notif-popover {
+  background: var(--surface-card);
+  border-color: var(--border-subtle);
+  color: var(--text-main);
+}
+
+[data-theme="dark"] .notif-popover-header,
+[data-theme="dark"] .notif-popover-footer {
+  background: #151D2F;
+  border-color: var(--border-subtle);
+}
+
+[data-theme="dark"] .notif-card-item:hover {
+  background: #232E45 !important;
+}
+
+[data-theme="dark"] .table-compact th,
+[data-theme="dark"] .resource-table th,
+[data-theme="dark"] .attendance-table th {
+  background: #151D2F;
+  color: var(--text-muted);
+  border-bottom-color: var(--border-subtle);
+}
+
+[data-theme="dark"] .table-compact td,
+[data-theme="dark"] .resource-table td,
+[data-theme="dark"] .attendance-table td {
+  border-bottom-color: var(--border-subtle);
+  color: var(--text-main);
+}
+
+[data-theme="dark"] .table-compact tr:hover td,
+[data-theme="dark"] .resource-table tr:hover td,
+[data-theme="dark"] .attendance-table tr:hover td {
+  background: #232E45;
+}
+
+[data-theme="dark"] input[type="text"],
+[data-theme="dark"] input[type="email"],
+[data-theme="dark"] input[type="password"],
+[data-theme="dark"] input[type="date"],
+[data-theme="dark"] select,
+[data-theme="dark"] textarea,
+[data-theme="dark"] .form-input {
+  background-color: #151D2F;
+  color: var(--text-main);
+  border-color: var(--border-subtle);
+}
+
+[data-theme="dark"] .category-chip-btn {
+  background: #151D2F;
+  color: var(--text-secondary);
+  border-color: var(--border-subtle);
+}
+
+[data-theme="dark"] .badge-subtle {
+  background: #1E293B;
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .modal-content,
+[data-theme="dark"] .modal-dialog {
+  background: var(--surface-card);
+  color: var(--text-main);
+  border-color: var(--border-subtle);
+}
+
+/* Chart contrast in Dark Mode */
+[data-theme="dark"] .edubridge-chart-tooltip {
+  background: #0F172A;
+  color: #FFFFFF;
+  border: 1px solid #334155;
+}
+
+[data-theme="dark"] svg line {
+  stroke: rgba(51, 65, 85, 0.7);
+}
+
+[data-theme="dark"] footer {
+  border-top-color: var(--border-subtle);
+  color: var(--text-muted);
+}
+
+.notif-count-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #EF4444;
+  color: #FFFFFF;
+  font-size: 0.65rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--surface-card, #FFFFFF);
+  line-height: 1;
+}
+
 /* Reset & Base */
 *, *::before, *::after {
   box-sizing: border-box;

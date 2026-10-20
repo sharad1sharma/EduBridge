@@ -293,6 +293,49 @@
       .replace(/'/g, '&#039;');
   }
 
+  // --- Dark Mode / Light Mode Theme Controller ---
+  function initThemeToggle() {
+    const toggleBtn = document.getElementById('themeToggleBtn');
+    if (!toggleBtn) return;
+
+    const sunIcon = toggleBtn.querySelector('.theme-icon-sun');
+    const moonIcon = toggleBtn.querySelector('.theme-icon-moon');
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      if (document.body) {
+        document.body.setAttribute('data-theme', theme);
+      }
+      try {
+        localStorage.setItem('edubridge_theme', theme);
+      } catch (e) {}
+
+      if (theme === 'dark') {
+        if (sunIcon) sunIcon.style.display = 'block';
+        if (moonIcon) moonIcon.style.display = 'none';
+        toggleBtn.setAttribute('title', 'Switch to Light Mode');
+        toggleBtn.setAttribute('aria-label', 'Switch to Light Mode');
+      } else {
+        if (sunIcon) sunIcon.style.display = 'none';
+        if (moonIcon) moonIcon.style.display = 'block';
+        toggleBtn.setAttribute('title', 'Switch to Dark Mode');
+        toggleBtn.setAttribute('aria-label', 'Switch to Dark Mode');
+      }
+    }
+
+    const savedTheme = localStorage.getItem('edubridge_theme');
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const currentTheme = savedTheme || (prefersDark ? 'dark' : 'light');
+    applyTheme(currentTheme);
+
+    toggleBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      const next = current === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+    });
+  }
+
   // --- Persistent Notification Center Controller ---
   function initNotificationCenter() {
     const notifBtn = document.getElementById('notificationBtn');
@@ -304,6 +347,9 @@
     const markAllBtn = document.getElementById('markAllReadBtn');
 
     if (!notifBtn || !notifPopover) return;
+
+    // Explicitly guarantee notification panel remains closed by default
+    notifPopover.style.display = 'none';
 
     let isFetching = false;
 
@@ -357,7 +403,7 @@
       }
 
       listContainer.innerHTML = notifications.map(n => `
-        <div class="notif-card-item ${n.is_read ? 'read' : 'unread'}" data-id="${n.id}" data-url="${escapeHtml(n.link || '')}" style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-subtle); cursor: pointer; transition: background 0.15s ease; background: ${n.is_read ? 'transparent' : '#F0F9FF'};">
+        <div class="notif-card-item ${n.is_read ? 'read' : 'unread'}" data-id="${n.id}" data-url="${escapeHtml(n.link || '')}" style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-subtle); cursor: pointer; transition: background 0.15s ease; background: ${n.is_read ? 'transparent' : 'var(--primary-light, #F0F9FF)'};">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.2rem;">
             <strong style="font-size: 0.84rem; color: var(--text-main); font-weight: ${n.is_read ? '600' : '700'};">${escapeHtml(n.title)}</strong>
             <span style="font-size: 0.72rem; color: var(--text-muted); white-space: nowrap;">${escapeHtml(n.created_at_human || '')}</span>
@@ -368,9 +414,15 @@
       `).join('');
 
       listContainer.querySelectorAll('.notif-card-item').forEach(item => {
-        item.addEventListener('click', async function () {
+        item.addEventListener('click', async function (e) {
+          e.stopPropagation();
           const notifId = this.getAttribute('data-id');
           const targetUrl = this.getAttribute('data-url');
+
+          // Instantly mark as read in UI
+          this.classList.remove('unread');
+          this.classList.add('read');
+          this.style.background = 'transparent';
 
           try {
             await fetch(`/api/notifications/${notifId}/read/`, {
@@ -380,9 +432,13 @@
                 'Accept': 'application/json'
               }
             });
-          } catch (e) {}
+          } catch (err) {}
 
-          if (targetUrl && targetUrl !== '#' && targetUrl !== '') {
+          // Close popover
+          notifPopover.style.display = 'none';
+
+          // Safe navigation without accidental unwanted redirect
+          if (targetUrl && targetUrl !== '#' && targetUrl !== '' && (targetUrl.startsWith('/') || targetUrl.startsWith('http'))) {
             window.location.href = targetUrl;
           } else {
             fetchNotifications();
@@ -434,12 +490,13 @@
     }
 
     fetchNotifications();
-    setInterval(fetchNotifications, 20000);
+    setInterval(fetchNotifications, 25000);
   }
 
   // --- Initializer on DOM Ready ---
   document.addEventListener('DOMContentLoaded', function () {
-    // 0. Initialize persistent notification center
+    // 0. Initialize theme switcher and notification center
+    initThemeToggle();
     initNotificationCenter();
 
     // 1. Setup Chat Enter Key & Button

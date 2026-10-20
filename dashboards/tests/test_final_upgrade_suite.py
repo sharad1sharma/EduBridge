@@ -233,3 +233,43 @@ class FinalUpgradeSuiteTests(TestCase):
         self.assertEqual(rec.status, "present")
         self.assertIn("Admin Correction", rec.remarks)
         self.assertIn("Medical certificate", rec.remarks)
+
+    def test_teacher_attendance_roster_does_not_raise_field_error(self):
+        """Regression test: verify get_teacher_attendance_roster uses public_id on User correctly."""
+        from dashboards.attendance_service import get_teacher_attendance_roster
+        self.client.force_login(self.teacher)
+        resp = self.client.get(reverse("teacher_attendance"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Class Attendance Roster", resp.content.decode("utf-8"))
+
+        # Verify underlying service call returns valid structure without FieldError
+        roster_data = get_teacher_attendance_roster(self.teacher)
+        self.assertIn("roster", roster_data)
+        self.assertIn("assigned_subjects", roster_data)
+        self.assertIn("selected_subject", roster_data)
+
+    def test_dark_mode_theme_script_and_toggle_present_in_base_template(self):
+        """Verify dark mode initialization script and toggle button are rendered."""
+        self.client.force_login(self.student)
+        resp = self.client.get(reverse("student_dashboard"))
+        self.assertEqual(resp.status_code, 200)
+        content = resp.content.decode("utf-8")
+        self.assertIn("id=\"themeToggleBtn\"", content)
+        self.assertIn("data-theme", content)
+        self.assertIn("theme-icon-sun", content)
+        self.assertIn("theme-icon-moon", content)
+
+    def test_notifications_closed_by_default_and_endpoint(self):
+        """Verify notifications API returns valid JSON and template specifies closed popover."""
+        self.client.force_login(self.student)
+        resp = self.client.get(reverse("student_dashboard"))
+        self.assertEqual(resp.status_code, 200)
+        content = resp.content.decode("utf-8")
+        self.assertIn("id=\"notificationPopover\" style=\"display: none;\"", content)
+
+        # Call notification listing API
+        resp_api = self.client.get(reverse("api_notifications_list"))
+        self.assertEqual(resp_api.status_code, 200)
+        data = resp_api.json()
+        self.assertIn("unread_count", data)
+        self.assertIn("notifications", data)

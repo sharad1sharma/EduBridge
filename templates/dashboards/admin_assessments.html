@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Assessments Administration · Administration{% endblock %}
+{% block content %}
+
+<div class="card-header-bar" style="margin-bottom: 1.25rem;">
+  <div>
+    <h1 style="margin-bottom: 0.25rem;">Assessments & Examinations Administration 📝</h1>
+    <p style="margin: 0; color: var(--text-muted);">Platform-wide supervision of daily practice assignments (≥10 MCQs) and weekly benchmark tests (25 MCQs + 5 Coding problems)</p>
+  </div>
+  <div>
+    <a class="btn small" href="{% url 'admin_export_csv' 'assessments' %}">Export Assessments CSV</a>
+  </div>
+</div>
+
+<form method="get" class="filters">
+  <div class="field">
+    <label for="branch">Filter by Branch</label>
+    <select id="branch" name="branch">
+      <option value="">All Branches</option>
+      {% for b in branches %}
+        <option value="{{ b.code }}"{% if b.code == branch %} selected{% endif %}>{{ b.code }} - {{ b.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="field">
+    <label for="type">Assessment Type</label>
+    <select id="type" name="type">
+      <option value="">All Types</option>
+      <option value="daily_assignment"{% if type == "daily_assignment" %} selected{% endif %}>Daily Assignment (≥10 MCQs)</option>
+      <option value="weekly_test"{% if type == "weekly_test" %} selected{% endif %}>Weekly Test (25 MCQs + 5 Coding)</option>
+    </select>
+  </div>
+  <button class="btn primary" type="submit">Filter Assessments</button>
+</form>
+
+{% if page.object_list %}
+<div class="table-wrap">
+  <table>
+    <caption class="sr">Platform assessments</caption>
+    <thead>
+      <tr>
+        <th scope="col">Title & Subject</th>
+        <th scope="col">Type</th>
+        <th scope="col">Branch & Sem</th>
+        <th scope="col">Questions Structure</th>
+        <th scope="col">Duration</th>
+        <th scope="col">Deadline</th>
+        <th scope="col">Submissions</th>
+        <th scope="col">Status Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in page.object_list %}
+      <tr>
+        <td>
+          <strong>{{ a.title }}</strong><br>
+          <small style="color: var(--text-muted);">{{ a.subject.code|default:"" }} {{ a.subject.title|default:"" }}</small>
+        </td>
+        <td>
+          <span class="role-chip" style="{% if a.assessment_type == 'weekly_test' %}background:#EEF2FF; color:#6366F1;{% endif %}">
+            {{ a.get_assessment_type_display }}
+          </span>
+        </td>
+        <td><strong>{{ a.branch }}</strong> Sem {{ a.semester }}</td>
+        <td>
+          <div style="font-size: 0.8rem;">
+            <span>📋 {{ a.mcq_count }} MCQs</span><br>
+            {% if a.coding_count %}<span>💻 {{ a.coding_count }} Coding Tasks</span>{% endif %}
+          </div>
+        </td>
+        <td>{{ a.duration_minutes }} mins</td>
+        <td class="mono" style="font-size: 0.8rem;">{{ a.deadline|date:"d M Y, H:i" }}</td>
+        <td>
+          <span class="badge badge-active">{{ a.attempts.count }} Attempts</span>
+        </td>
+        <td>
+          <form method="post" style="margin: 0; display: flex; gap: 0.35rem;">{% csrf_token %}
+            <input type="hidden" name="action" value="toggle_status">
+            <input type="hidden" name="assessment_id" value="{{ a.pk }}">
+            {% if a.status == 'published' %}
+              <input type="hidden" name="new_status" value="archived">
+              <button class="btn small" type="submit">Archive</button>
+            {% else %}
+              <input type="hidden" name="new_status" value="published">
+              <button class="btn small primary" type="submit">Publish</button>
+            {% endif %}
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "partials/pagination.html" %}
+{% else %}
+<p class="empty" style="padding: 2.5rem; text-align: center; background: #FFFFFF; border-radius: var(--radius-lg); border: 1px dashed var(--border-strong);">
+  No assessments match the selected filter.
+</p>
+{% endif %}
+
+{% endblock %}

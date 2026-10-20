@@ -1,0 +1,351 @@
+{% extends "base.html" %}
+
+{% block title %}Institution-Wide Attendance Oversight | EduBridge Administration{% endblock %}
+
+{% block content %}
+<style>
+.admin-att-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.admin-filter-bar {
+    background: #FFFFFF;
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.admin-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.admin-kpi-card {
+    background: #FFFFFF;
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+.admin-att-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+.admin-att-table th {
+    background: #F8FAFC;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 700;
+    color: #475569;
+    border-bottom: 1px solid #CBD5E1;
+}
+.admin-att-table td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid #E2E8F0;
+    color: #1E293B;
+    vertical-align: middle;
+}
+.admin-att-table tr:hover td {
+    background: #F8FAFC;
+}
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: capitalize;
+}
+.status-present {
+    background: #ECFDF5;
+    color: #059669;
+    border: 1px solid #A7F3D0;
+}
+.status-absent {
+    background: #FEF2F2;
+    color: #DC2626;
+    border: 1px solid #FECACA;
+}
+.status-late {
+    background: #FFFBEB;
+    color: #D97706;
+    border: 1px solid #FDE68A;
+}
+</style>
+
+<div class="page-container" style="max-width: 1280px; margin: 0 auto; padding: 1.5rem 1rem;">
+    <!-- Header Bar -->
+    <div class="admin-att-header">
+        <div>
+            <div class="admin-badge-pill" style="background: #FEF3C7; color: #D97706;">Administrative Audit & Governance</div>
+            <h1 style="margin: 0.25rem 0 0.25rem; font-size: 1.75rem; font-weight: 800; color: var(--text-main);">Institutional Attendance Governance</h1>
+            <p style="margin: 0; color: var(--text-muted); font-size: 0.95rem;">Cross-departmental attendance telemetry, discrepancy resolution, and verified session audit logs.</p>
+        </div>
+        <div>
+            <a href="{% url 'admin_dashboard' %}" class="btn" style="background: #FFFFFF; border: 1px solid var(--border-subtle); color: var(--text-main);">← Admin Overview</a>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <form method="GET" class="admin-filter-bar">
+        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+            <div>
+                <label style="font-size: 0.775rem; font-weight: 700; color: #475569; display: block; margin-bottom: 0.25rem;">Department / Branch</label>
+                <select name="branch" class="form-input" style="min-width: 200px;" onchange="this.form.submit()">
+                    <option value="all">All Departments</option>
+                    {% for b in branches %}
+                    <option value="{{ b.code }}" {% if selected_branch == b.code %}selected{% endif %}>{{ b.code }} — {{ b.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label style="font-size: 0.775rem; font-weight: 700; color: #475569; display: block; margin-bottom: 0.25rem;">Session Date</label>
+                <input type="date" name="date" value="{{ date_str }}" class="form-input" onchange="this.form.submit()">
+            </div>
+        </div>
+
+        <div>
+            <button type="button" class="btn btn-primary" onclick="openCorrectionModal()">
+                + Record Attendance Correction
+            </button>
+        </div>
+    </form>
+
+    <!-- KPI Summary Grid -->
+    <div class="admin-kpi-grid">
+        <div class="admin-kpi-card">
+            <div style="font-size: 0.75rem; font-weight: 600; color: #64748B;">Total Records Evaluated</div>
+            <div style="font-size: 1.75rem; font-weight: 800; color: #1E293B;">{{ overview.total_records }}</div>
+            <div style="font-size: 0.75rem; color: #64748B;">Institutional sessions</div>
+        </div>
+        <div class="admin-kpi-card">
+            <div style="font-size: 0.75rem; font-weight: 600; color: #64748B;">Total Present</div>
+            <div style="font-size: 1.75rem; font-weight: 800; color: #059669;">{{ overview.present_total }}</div>
+            <div style="font-size: 0.75rem; color: #059669; font-weight: 600;">Recorded attendance</div>
+        </div>
+        <div class="admin-kpi-card">
+            <div style="font-size: 0.75rem; font-weight: 600; color: #64748B;">Total Absences</div>
+            <div style="font-size: 1.75rem; font-weight: 800; color: #DC2626;">{{ overview.absent_total }}</div>
+            <div style="font-size: 0.75rem; color: #DC2626; font-weight: 600;">Unexcused absences</div>
+        </div>
+        <div class="admin-kpi-card">
+            <div style="font-size: 0.75rem; font-weight: 600; color: #64748B;">Late Arrivals</div>
+            <div style="font-size: 1.75rem; font-weight: 800; color: #D97706;">{{ overview.late_total }}</div>
+            <div style="font-size: 0.75rem; color: #D97706; font-weight: 600;">Partial sessions</div>
+        </div>
+        <div class="admin-kpi-card">
+            <div style="font-size: 0.75rem; font-weight: 600; color: #64748B;">Institutional Attendance Rate</div>
+            <div style="font-size: 1.75rem; font-weight: 800; color: #4F46E5;">{{ overview.overall_rate }}%</div>
+            <div style="font-size: 0.75rem; color: #64748B;">Across target filters</div>
+        </div>
+    </div>
+
+    <!-- Alert Banner -->
+    <div id="adminNotice" style="display: none; padding: 0.85rem 1.25rem; border-radius: 8px; margin-bottom: 1.5rem; font-size: 0.9rem;"></div>
+
+    <!-- Attendance Audit Log Table -->
+    <div style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+                <h2 style="font-size: 1.25rem; font-weight: 800; color: #1E293B; margin: 0;">Verified Attendance & Modification Audit Trail</h2>
+                <p style="margin: 0.25rem 0 0; color: #64748B; font-size: 0.85rem;">Date: <strong>{{ overview.target_date|date:"l, d M Y" }}</strong> · All modifications record the author and timestamp.</p>
+            </div>
+            <span class="badge badge-active">{{ overview.recent_logs|length }} Verified Logs</span>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table class="admin-att-table">
+                <thead>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Student</th>
+                        <th>Subject / Session</th>
+                        <th>Status</th>
+                        <th>Recorded By</th>
+                        <th>Session Method</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in overview.recent_logs %}
+                    <tr id="log-row-{{ r.id }}">
+                        <td style="font-weight: 700; white-space: nowrap;">
+                            {{ r.date|date:"d M Y" }}
+                            <div style="font-size: 0.75rem; color: #64748B;">{{ r.updated_at|date:"H:i" }} UTC</div>
+                        </td>
+                        <td>
+                            <strong style="color: #0F172A;">{{ r.student_name }}</strong>
+                            <div style="font-family: monospace; font-size: 0.75rem; color: #4F46E5;">{{ r.student_id }}</div>
+                        </td>
+                        <td>
+                            <strong>{{ r.subject }}</strong>
+                            <div style="font-size: 0.75rem; color: #64748B;">{{ r.session_title }}</div>
+                        </td>
+                        <td>
+                            {% if r.status == "present" %}
+                            <span class="status-pill status-present">● Present</span>
+                            {% elif r.status == "absent" %}
+                            <span class="status-pill status-absent">● Absent</span>
+                            {% else %}
+                            <span class="status-pill status-late">● Late Arrival</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-size: 0.825rem; color: #475569;">
+                            {{ r.recorded_by }}
+                        </td>
+                        <td>
+                            {% if r.is_auto %}
+                            <span class="badge" style="background: #EEF2FF; color: #4F46E5; font-size: 0.7rem;">Auto-Login</span>
+                            {% else %}
+                            <span class="badge" style="background: #F1F5F9; color: #475569; font-size: 0.7rem;">Faculty Verified</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button type="button" class="btn small" style="background: #F1F5F9; color: #334155;"
+                                    onclick="quickCorrectRecord({{ r.id }}, '{{ r.status }}')">
+                                Correct
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: #94A3B8; padding: 2.5rem;">
+                            No attendance logs found for this date and department filter.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Record / Correct Attendance -->
+<div id="correctionModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: #FFFFFF; border-radius: 12px; max-width: 480px; width: 90%; padding: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.15);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #0F172A;">Admin Attendance Correction</h3>
+            <button type="button" onclick="closeCorrectionModal()" style="border: none; background: transparent; font-size: 1.25rem; cursor: pointer;">✕</button>
+        </div>
+
+        <form id="correctionForm" onsubmit="submitCorrection(event)">
+            {% csrf_token %}
+            <input type="hidden" id="modalRecordId" name="record_id" value="">
+
+            <div id="modalStudentInputGroup" style="margin-bottom: 1rem;">
+                <label style="font-size: 0.8rem; font-weight: 700; color: #334155; display: block; margin-bottom: 0.25rem;">Student ID or Username *</label>
+                <input type="text" id="modalStudentId" class="form-input" placeholder="e.g. S1001 or jane_doe">
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                <label style="font-size: 0.8rem; font-weight: 700; color: #334155; display: block; margin-bottom: 0.25rem;">Date *</label>
+                <input type="date" id="modalDate" class="form-input" value="{{ date_str }}" required>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                <label style="font-size: 0.8rem; font-weight: 700; color: #334155; display: block; margin-bottom: 0.25rem;">Adjusted Status *</label>
+                <select id="modalStatus" class="form-input" required>
+                    <option value="present">Present</option>
+                    <option value="absent">Absent</option>
+                    <option value="late">Late Arrival</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 1.25rem;">
+                <label style="font-size: 0.8rem; font-weight: 700; color: #334155; display: block; margin-bottom: 0.25rem;">Administrative Reason / Remarks *</label>
+                <textarea id="modalRemarks" rows="2" class="form-input" placeholder="e.g. Medical certificate verified / Institutional representation" required></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                <button type="button" class="btn" onclick="closeCorrectionModal()" style="background: #F1F5F9; color: #475569;">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Official Correction</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+const CSRF_TOKEN = '{{ csrf_token }}';
+
+function showAdminNotice(msg, isErr = false) {
+    const el = document.getElementById('adminNotice');
+    el.style.display = 'block';
+    el.style.background = isErr ? '#FEF2F2' : '#F0FDF4';
+    el.style.color = isErr ? '#B91C1C' : '#15803D';
+    el.style.border = isErr ? '1px solid #FECACA' : '1px solid #BBF7D0';
+    el.innerHTML = msg;
+    setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+
+function openCorrectionModal() {
+    document.getElementById('modalRecordId').value = '';
+    document.getElementById('modalStudentInputGroup').style.display = 'block';
+    document.getElementById('modalStudentId').required = true;
+    document.getElementById('correctionModal').style.display = 'flex';
+}
+
+function quickCorrectRecord(recordId, currentStatus) {
+    document.getElementById('modalRecordId').value = recordId;
+    document.getElementById('modalStudentInputGroup').style.display = 'none';
+    document.getElementById('modalStudentId').required = false;
+    document.getElementById('modalStatus').value = currentStatus === 'present' ? 'absent' : 'present';
+    document.getElementById('modalRemarks').value = 'Audited status adjustment';
+    document.getElementById('correctionModal').style.display = 'flex';
+}
+
+function closeCorrectionModal() {
+    document.getElementById('correctionModal').style.display = 'none';
+}
+
+function submitCorrection(e) {
+    e.preventDefault();
+    const recordId = document.getElementById('modalRecordId').value;
+    const studentId = document.getElementById('modalStudentId').value;
+    const dateVal = document.getElementById('modalDate').value;
+    const statusVal = document.getElementById('modalStatus').value;
+    const remarksVal = document.getElementById('modalRemarks').value;
+
+    fetch('/api/admin/attendance/correct/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': CSRF_TOKEN,
+        },
+        body: JSON.stringify({
+            record_id: recordId || null,
+            student_id: studentId || null,
+            date: dateVal,
+            status: statusVal,
+            remarks: remarksVal
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'success') {
+            closeCorrectionModal();
+            showAdminNotice(data.message);
+            setTimeout(() => window.location.reload(), 700);
+        } else {
+            showAdminNotice(data.message || 'Error saving correction', true);
+        }
+    })
+    .catch(err => {
+        showAdminNotice('Server error while saving correction', true);
+    });
+}
+</script>
+{% endblock %}

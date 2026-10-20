@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Live Lectures & Meetings | Faculty Portal{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="card-header-bar" style="margin-bottom: 1.25rem;">
+        <div>
+            <div class="admin-badge-pill" style="background: #EEF2FF; color: #6366F1;">Virtual Classroom</div>
+            <h1 style="margin: 0.25rem 0 0.25rem;">Hosted Lectures & Tutorial Sessions</h1>
+            <p style="margin: 0; color: var(--text-muted);">Manage scheduled video lectures and notify enrolled students automatically.</p>
+        </div>
+        <div style="display: flex; gap: 0.65rem;">
+            <a href="{% url 'teacher_meeting_new' %}" class="btn primary">+ Schedule Live Class</a>
+            <a href="{% url 'teacher_dashboard' %}" class="btn">← Back to Dashboard</a>
+        </div>
+    </div>
+
+    <!-- Meetings Table -->
+    <div class="card">
+        <div class="card-header-bar">
+            <h2>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line></svg>
+                Class Schedule
+            </h2>
+            <span class="badge badge-active">{{ page.paginator.count }} Sessions</span>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th scope="col">Session Title</th>
+                        <th scope="col">Cohort & Subject</th>
+                        <th scope="col">Scheduled Time</th>
+                        <th scope="col">Duration</th>
+                        <th scope="col">Meeting URL</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in page %}
+                    <tr>
+                        <td><strong>{{ m.title }}</strong></td>
+                        <td>{{ m.branch }} Sem {{ m.semester }} ({{ m.subject.code|default:"Core" }})</td>
+                        <td>{{ m.scheduled_at|date:"M d, Y H:i" }}</td>
+                        <td>{{ m.duration_minutes }} mins</td>
+                        <td>
+                            <a href="{{ m.meeting_link }}" target="_blank" class="mono small" style="color: #2563EB;">Open Link ↗</a>
+                        </td>
+                        <td>
+                            {% if m.status == 'scheduled' %}
+                            <span class="badge badge-active">Scheduled</span>
+                            {% elif m.status == 'cancelled' %}
+                            <span class="badge badge-alert">Cancelled</span>
+                            {% else %}
+                            <span class="badge badge-subtle">{{ m.get_status_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if m.status == 'scheduled' %}
+                            <form method="POST" action="{% url 'teacher_meetings' %}" style="display: inline-block;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="cancel_meeting">
+                                <input type="hidden" name="meeting_id" value="{{ m.id }}">
+                                <button type="submit" class="btn small alert" onclick="return confirm('Cancel this lecture session? Enrolled students will receive a cancellation notice.');">Cancel</button>
+                            </form>
+                            {% else %}
+                            <span class="text-muted small">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">No live sessions scheduled yet. Click "+ Schedule Live Class" to create one.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if page.has_other_pages %}
+        <div class="pagination-container mt-3" style="padding-top: 1rem;">
+            <div class="pagination">
+                {% if page.has_previous %}
+                <a href="?page={{ page.previous_page_number }}" class="page-link">← Previous</a>
+                {% endif %}
+                <span class="page-current">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+                {% if page.has_next %}
+                <a href="?page={{ page.next_page_number }}" class="page-link">Next →</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

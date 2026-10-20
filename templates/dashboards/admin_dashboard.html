@@ -1,0 +1,413 @@
+{% extends "base.html" %}
+{% block title %}Administration{% endblock %}
+{% block content %}
+
+<!-- Header & Quick Actions -->
+<div class="card-header-bar" style="margin-bottom: 1.5rem;">
+  <div>
+    <h1 style="margin-bottom: 0.25rem;">Platform overview 🛡️</h1>
+    <p style="margin: 0; color: var(--text-muted);">Institution Administration Console · Real-time telemetry, user management & audit logs</p>
+  </div>
+  <p class="actions" style="margin: 0;">
+    <a class="btn primary" href="{% url 'admin_teacher_new' %}">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      Create teacher account
+    </a>
+    <a class="btn" href="{% url 'admin_users' %}">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+      Manage accounts
+    </a>
+    <a class="btn" href="{% url 'admin_audit' %}">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+      Open audit log
+    </a>
+  </p>
+</div>
+
+<!-- Primary Metric Strip (Preserving Titleblock Hook & IDs) -->
+<dl class="titleblock" id="stats">
+  <div>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <dt>Students</dt>
+      <span class="icon-bubble blue" style="width: 32px; height: 32px; border-radius: 8px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+      </span>
+    </div>
+    <dd data-countup data-countup-target="{{ stats.students }}">{{ stats.students }}</dd>
+    <small style="color: #059669; font-weight: 700; font-size: 0.75rem;">Verified student profiles</small>
+  </div>
+
+  <div>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <dt>Teachers</dt>
+      <span class="icon-bubble purple" style="width: 32px; height: 32px; border-radius: 8px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+      </span>
+    </div>
+    <dd data-countup data-countup-target="{{ stats.teachers }}">{{ stats.teachers }}</dd>
+    <small style="color: #6366F1; font-weight: 700; font-size: 0.75rem;">Faculty accounts</small>
+  </div>
+
+  <div>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <dt>Suspended accounts</dt>
+      <span class="icon-bubble rose" style="width: 32px; height: 32px; border-radius: 8px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+      </span>
+    </div>
+    <dd style="color: #DC2626;" data-countup data-countup-target="{{ stats.suspended }}">{{ stats.suspended }}</dd>
+    <small style="color: var(--text-muted); font-size: 0.75rem;">Session revoked</small>
+  </div>
+
+  <div>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <dt>New students, last 7 days</dt>
+      <span class="icon-bubble green" style="width: 32px; height: 32px; border-radius: 8px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+      </span>
+    </div>
+    <dd style="color: #059669;" data-countup data-countup-target="{{ stats.new_students_7d }}" data-countup-prefix="+">+{{ stats.new_students_7d }}</dd>
+    <small style="color: #059669; font-weight: 700; font-size: 0.75rem;">Weekly onboarding rate</small>
+  </div>
+</dl>
+
+<div class="grid wide">
+  <!-- Students by Branch Card -->
+  <section class="card" id="resourceCards">
+    <div class="card-header-bar">
+      <h2>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        Students by branch
+      </h2>
+      <span class="badge badge-active">Enrollment Breakdown</span>
+    </div>
+    <ul class="bars">
+      {% for b in branches %}
+      <li>
+        <span class="bar-label">{{ b.label }}</span>
+        <progress value="{{ b.count }}" max="{{ max_branch }}" aria-label="{{ b.label }}">{{ b.count }}</progress>
+        <span class="bar-count">{{ b.count }} students</span>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <!-- Recent Activity / Security Audit Feed -->
+  <section class="card" id="testPanel">
+    <div class="card-header-bar">
+      <h2>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+        Recent security & audit activity
+      </h2>
+      <a href="{% url 'admin_audit' %}" class="btn small">View all</a>
+    </div>
+    {% if recent_events %}
+    <ul class="events">
+      {% for e in recent_events %}
+      <li>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.2rem;">
+          <strong>{{ e.action }}</strong>
+          <time datetime="{{ e.created_at|date:'c' }}">{{ e.created_at|date:"d M, H:i" }}</time>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-muted);">
+          {% if e.actor_label %}Triggered by <span class="mono">{{ e.actor_label }}</span>{% else %}System event{% endif %}
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="empty">No security or user events recorded yet.</p>
+    {% endif %}
+  </section>
+
+  <!-- Fully Working Administration Roadmap & Operations Suite -->
+  <section class="card" style="grid-column: 1 / -1;">
+    <div class="card-header-bar">
+      <div>
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+          Administration Roadmap & Operations Suite
+        </h2>
+        <p style="margin: 0; color: var(--text-muted); font-size: 0.825rem;">Interactive institutional tools for curriculum management, fund allocation, database snapshots, and policy enforcement.</p>
+      </div>
+      <span class="badge badge-active">All Tools Active</span>
+    </div>
+
+    <div class="admin-tools-grid">
+      
+      <!-- Tool 1: Catalog Manager -->
+      <div class="admin-tool-card">
+        <div class="admin-tool-header">
+          <span class="icon-bubble blue" style="width: 34px; height: 34px; border-radius: 8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+          </span>
+          <h3>Course & Syllabus Catalog</h3>
+        </div>
+        <p>Manage B.Tech departmental branches, course codes, syllabus schemes, and subject credits.</p>
+        <div style="margin-bottom: 0.75rem;">
+          <span class="badge badge-active" id="catalogBadge">6 Branches Active</span>
+        </div>
+        <button class="btn small primary" type="button" id="openCatalogBtn">
+          Open Catalog Manager
+        </button>
+      </div>
+
+      <!-- Tool 2: Scholarship Fund Tracker -->
+      <div class="admin-tool-card">
+        <div class="admin-tool-header">
+          <span class="icon-bubble purple" style="width: 34px; height: 34px; border-radius: 8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          </span>
+          <h3>Central Scholarship Fund</h3>
+        </div>
+        <p>Monitor scholarship endowments, verify applicant eligibility, and track fund allocations.</p>
+        <div style="margin-bottom: 0.75rem;">
+          <span class="badge badge-pending" id="fundBadge">₹25,00,000 Allocated</span>
+        </div>
+        <button class="btn small" type="button" id="openFundBtn">
+          Review Scholarship Grants
+        </button>
+      </div>
+
+      <!-- Tool 3: Automated Backup Tool -->
+      <div class="admin-tool-card">
+        <div class="admin-tool-header">
+          <span class="icon-bubble green" style="width: 34px; height: 34px; border-radius: 8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </span>
+          <h3>Automated Backup & Health</h3>
+        </div>
+        <p>Execute real-time database snapshot backups, verify WAL locks, and check telemetry integrity.</p>
+        <div style="margin-bottom: 0.75rem;">
+          <span class="badge badge-active" id="backupStatusBadge">Database Healthy</span>
+        </div>
+        <button class="btn small" type="button" id="runBackupBtn">
+          Run Backup Snapshot Now
+        </button>
+      </div>
+
+      <!-- Tool 4: Policy Enforcement -->
+      <div class="admin-tool-card">
+        <div class="admin-tool-header">
+          <span class="icon-bubble amber" style="width: 34px; height: 34px; border-radius: 8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+          </span>
+          <h3>Account Policy & Retention</h3>
+        </div>
+        <p>Audit inactive users, enforce session revocations, and review account retention compliance.</p>
+        <div style="margin-bottom: 0.75rem;">
+          <span class="badge badge-active">Default-Deny Active</span>
+        </div>
+        <a class="btn small" href="{% url 'admin_users' %}?status=suspended">
+          Review Suspended Accounts
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+</div>
+
+<!-- ==========================================================================
+     INTERACTIVE MODALS FOR ROADMAP TOOLS
+     ========================================================================== -->
+
+<!-- 1. Catalog Manager Modal -->
+<div class="modal-overlay" id="catalogModal">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <h3>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+        Branch & Syllabus Catalog Manager
+      </h3>
+      <button class="modal-close-btn" type="button" aria-label="Close" data-modal-close>&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div>
+          <strong>Active Departmental Curriculums:</strong>
+          <p style="margin: 0; font-size: 0.8rem; color: var(--text-muted);">Manage official subjects and credit allocations for B.Tech branches</p>
+        </div>
+        <button class="btn small primary" type="button" id="toggleAddSubjectForm">+ Add New Subject</button>
+      </div>
+
+      <!-- Add Subject Form (Collapsible) -->
+      <div id="addSubjectForm" style="display: none; background: #F8FAFC; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1rem;">
+        <h4 style="margin: 0 0 0.75rem; font-size: 0.9rem;">Add New Course to Syllabus</h4>
+        <div style="display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 0.65rem; margin-bottom: 0.75rem;">
+          <input type="text" id="newSubCode" placeholder="Code (e.g. CS501)" style="font-size: 0.85rem; padding: 0.4rem 0.6rem;">
+          <input type="text" id="newSubName" placeholder="Subject Title (e.g. Distributed Computing)" style="font-size: 0.85rem; padding: 0.4rem 0.6rem;">
+          <select id="newSubBranch" style="font-size: 0.85rem; padding: 0.4rem 0.6rem;">
+            <option value="CSE">CSE</option>
+            <option value="ECE">ECE</option>
+            <option value="ME">ME</option>
+            <option value="CE">CE</option>
+            <option value="IT">IT</option>
+          </select>
+        </div>
+        <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+          <button class="btn small" type="button" id="cancelAddSubject">Cancel</button>
+          <button class="btn small primary" type="button" id="saveSubjectBtn">Save to Catalog</button>
+        </div>
+      </div>
+
+      <!-- Catalog Table -->
+      <div class="table-wrap">
+        <table id="catalogTable">
+          <thead>
+            <tr>
+              <th scope="col">Code</th>
+              <th scope="col">Subject Name</th>
+              <th scope="col">Branch</th>
+              <th scope="col">Credits</th>
+              <th scope="col">Status</th>
+            </tr>
+          </thead>
+          <tbody id="catalogTableBody">
+            <tr>
+              <td class="mono"><strong>CS301</strong></td>
+              <td>Design & Analysis of Algorithms</td>
+              <td><span class="role-chip">CSE</span></td>
+              <td>4.0</td>
+              <td><span class="badge badge-active">Core</span></td>
+            </tr>
+            <tr>
+              <td class="mono"><strong>CS302</strong></td>
+              <td>Operating Systems Kernel Design</td>
+              <td><span class="role-chip">CSE</span></td>
+              <td>4.0</td>
+              <td><span class="badge badge-active">Core</span></td>
+            </tr>
+            <tr>
+              <td class="mono"><strong>CS304</strong></td>
+              <td>Database Management & SQL Systems</td>
+              <td><span class="role-chip">CSE</span></td>
+              <td>3.0</td>
+              <td><span class="badge badge-active">Core</span></td>
+            </tr>
+            <tr>
+              <td class="mono"><strong>EC201</strong></td>
+              <td>Signals & Linear Systems</td>
+              <td><span class="role-chip" style="background:#EEF2FF; color:#6366F1;">ECE</span></td>
+              <td>4.0</td>
+              <td><span class="badge badge-active">Core</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" type="button" data-modal-close>Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Scholarship Grants Tracker Modal -->
+<div class="modal-overlay" id="scholarshipModal">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <h3>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+        Central Scholarship Fund Manager
+      </h3>
+      <button class="modal-close-btn" type="button" aria-label="Close" data-modal-close>&times;</button>
+    </div>
+    <div class="modal-body">
+      <!-- High-Density Fund Metrics -->
+      <div class="dense-metric-grid" style="margin-bottom: 1.25rem;">
+        <div class="dense-metric-item">
+          <div class="dense-metric-label">Total Endowment</div>
+          <div class="dense-metric-num" style="color: #2563EB;">₹25,00,000</div>
+          <small style="color: #059669; font-weight: 700; font-size: 0.725rem;">Approved Budget</small>
+        </div>
+        <div class="dense-metric-item">
+          <div class="dense-metric-label">Disbursed</div>
+          <div class="dense-metric-num" id="modalDisbursedNum" style="color: #059669;">₹12,50,000</div>
+          <small style="color: var(--text-muted); font-size: 0.725rem;">50% Allocated</small>
+        </div>
+        <div class="dense-metric-item">
+          <div class="dense-metric-label">Applications</div>
+          <div class="dense-metric-num" id="modalAppsNum" style="color: #D97706;">14</div>
+          <small style="color: #D97706; font-weight: 700; font-size: 0.725rem;">Pending Audit</small>
+        </div>
+      </div>
+
+      <h4 style="margin: 0 0 0.75rem; font-size: 0.925rem;">Recent Scholarship Applications</h4>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Student ID</th>
+              <th scope="col">Scheme</th>
+              <th scope="col">Grant Amount</th>
+              <th scope="col">Status</th>
+              <th scope="col">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono">S1001</td>
+              <td>Merit-Cum-Means Engineering Grant</td>
+              <td><strong>₹50,000</strong></td>
+              <td><span class="badge badge-pending">Review Pending</span></td>
+              <td>
+                <button class="btn small primary approve-grant-btn" type="button">Approve & Disburse</button>
+              </td>
+            </tr>
+            <tr>
+              <td class="mono">S1002</td>
+              <td>Women in STEM Research Grant</td>
+              <td><strong>₹75,000</strong></td>
+              <td><span class="badge badge-active">Disbursed</span></td>
+              <td>
+                <span style="font-size: 0.75rem; color: #059669; font-weight: 700;">✓ Bank Transferred</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" type="button" data-modal-close>Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- 3. Backup Snapshot Modal -->
+<div class="modal-overlay" id="backupModal">
+  <div class="modal-dialog" style="max-width: 32rem;">
+    <div class="modal-header">
+      <h3>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Database Snapshot Backup
+      </h3>
+      <button class="modal-close-btn" type="button" aria-label="Close" data-modal-close>&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="text-align: center; padding: 1rem 0;">
+        <div class="icon-bubble green" style="width: 54px; height: 54px; margin: 0 auto 1rem; border-radius: 16px;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        </div>
+        <h4 style="margin: 0 0 0.5rem; font-size: 1.15rem;">Automated Snapshot Ready</h4>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); max-width: 24rem; margin: 0 auto 1.25rem;">
+          Database file: <span class="mono">db.sqlite3</span> · WAL mode active · All session and audit logs locked cleanly for hot backup.
+        </p>
+
+        <div id="backupProgressBox" style="display: none; background: #F8FAFC; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem; text-align: left; margin-bottom: 1rem;">
+          <div style="font-size: 0.8rem; font-weight: 700; color: var(--primary); margin-bottom: 0.35rem;">Creating snapshot...</div>
+          <progress id="backupProgressMeter" value="0" max="100"></progress>
+          <div id="backupLogLine" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem; font-family: var(--font-mono);">Acquiring immediate read lock...</div>
+        </div>
+
+        <button class="btn primary" type="button" id="startBackupExecution" style="width: 100%; padding: 0.75rem;">
+          Execute Immediate Database Backup
+        </button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" type="button" data-modal-close>Close</button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

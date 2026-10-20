@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block title %}Branch & Subject Management · Administration{% endblock %}
+{% block content %}
+
+<div class="card-header-bar" style="margin-bottom: 1.25rem;">
+  <div>
+    <h1 style="margin-bottom: 0.25rem;">Branch & Subject Academic Structure 🏛️</h1>
+    <p style="margin: 0; color: var(--text-muted);">Manage B.Tech departmental branches, semester schemas, subjects, and teacher allocations</p>
+  </div>
+</div>
+
+<div class="dashboard-columns-2">
+  <!-- Left: Subject Catalog & Add Subject -->
+  <div style="display: flex; flex-direction: column; gap: 1.35rem;">
+    
+    <section class="card">
+      <div class="card-header-bar">
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+          Course & Subject Catalog ({{ subjects.count }})
+        </h2>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Code</th>
+              <th scope="col">Title</th>
+              <th scope="col">Branch</th>
+              <th scope="col">Sem</th>
+              <th scope="col">Credits</th>
+              <th scope="col">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in subjects %}
+            <tr>
+              <td class="mono"><strong>{{ s.code }}</strong></td>
+              <td>{{ s.title }}</td>
+              <td><span class="role-chip">{{ s.branch }}</span></td>
+              <td>Sem {{ s.semester }}</td>
+              <td>{{ s.credits }}</td>
+              <td>
+                <form method="post" onsubmit="return confirm('Delete subject {{ s.code }}?');" style="margin: 0;">{% csrf_token %}
+                  <input type="hidden" name="action" value="delete_subject">
+                  <input type="hidden" name="code" value="{{ s.code }}">
+                  <button class="btn small danger" type="submit">Delete</button>
+                </form>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="empty">No subjects added yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Add New Subject Form -->
+    <section class="card">
+      <div class="card-header-bar">
+        <h2>+ Add New Subject to Catalog</h2>
+      </div>
+      <form method="post">{% csrf_token %}
+        <input type="hidden" name="action" value="add_subject">
+        <div class="form-grid">
+          <div class="field">
+            <label for="sub_code">Subject Code</label>
+            <input id="sub_code" name="code" placeholder="e.g. CS402" required>
+          </div>
+          <div class="field">
+            <label for="sub_title">Subject Title</label>
+            <input id="sub_title" name="title" placeholder="e.g. Distributed Systems" required>
+          </div>
+          <div class="field">
+            <label for="sub_branch">Departmental Branch</label>
+            <select id="sub_branch" name="branch" required>
+              {% for b in branches %}
+                <option value="{{ b.code }}">{{ b.code }} - {{ b.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label for="sub_semester">Semester</label>
+            <select id="sub_semester" name="semester">
+              {% for s in "12345678" %}<option value="{{ s }}">Semester {{ s }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label for="sub_credits">Credits</label>
+            <input id="sub_credits" name="credits" type="number" step="0.5" value="4.0" required>
+          </div>
+        </div>
+        <div class="field">
+          <label for="sub_syllabus">Syllabus Summary</label>
+          <textarea id="sub_syllabus" name="syllabus_summary" rows="2" placeholder="Key topics and modules..."></textarea>
+        </div>
+        <button class="btn primary" type="submit">Register Subject</button>
+      </form>
+    </section>
+
+  </div>
+
+  <!-- Right: B.Tech Branches List & Add Branch -->
+  <div style="display: flex; flex-direction: column; gap: 1.35rem;">
+
+    <section class="card">
+      <div class="card-header-bar">
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          B.Tech Branches ({{ branches.count }})
+        </h2>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 0.65rem;">
+        {% for b in branches %}
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.65rem 0.85rem; background: #F8FAFC; border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
+          <div>
+            <strong>{{ b.code }}</strong> - <span style="font-size: 0.85rem;">{{ b.name }}</span>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">{{ b.description|truncatewords:8 }}</div>
+          </div>
+          <form method="post" style="margin: 0;">{% csrf_token %}
+            <input type="hidden" name="action" value="toggle_branch">
+            <input type="hidden" name="code" value="{{ b.code }}">
+            <button class="btn small {% if b.is_enabled %}primary{% else %}danger{% endif %}" type="submit">
+              {% if b.is_enabled %}Enabled{% else %}Disabled{% endif %}
+            </button>
+          </form>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- Add Branch Form -->
+    <section class="card">
+      <div class="card-header-bar">
+        <h2>+ Add Academic Branch</h2>
+      </div>
+      <form method="post">{% csrf_token %}
+        <input type="hidden" name="action" value="add_branch">
+        <div class="field">
+          <label for="b_code">Branch Code</label>
+          <input id="b_code" name="code" placeholder="e.g. ROB" required>
+        </div>
+        <div class="field">
+          <label for="b_name">Branch Full Name</label>
+          <input id="b_name" name="name" placeholder="e.g. Robotics & Automation" required>
+        </div>
+        <div class="field">
+          <label for="b_desc">Description</label>
+          <textarea id="b_desc" name="description" rows="2" placeholder="Curriculum focus..."></textarea>
+        </div>
+        <button class="btn primary" type="submit">Create Branch</button>
+      </form>
+    </section>
+
+  </div>
+</div>
+
+{% endblock %}

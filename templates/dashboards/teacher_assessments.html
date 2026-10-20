@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Assessments | Faculty Portal{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="card-header-bar" style="margin-bottom: 1.25rem;">
+        <div>
+            <div class="admin-badge-pill" style="background: #EFF6FF; color: #2563EB;">Course Evaluations</div>
+            <h1 style="margin: 0.25rem 0 0.25rem;">Authored Daily MCQs & Weekly Tests</h1>
+            <p style="margin: 0; color: var(--text-muted);">Manage your assessment question banks, publish dates, and review student attempt statistics.</p>
+        </div>
+        <div style="display: flex; gap: 0.65rem;">
+            <a href="{% url 'teacher_assessment_new' %}" class="btn primary">+ Create New Assessment</a>
+            <a href="{% url 'teacher_dashboard' %}" class="btn">← Back to Dashboard</a>
+        </div>
+    </div>
+
+    <!-- Assessments Table -->
+    <div class="card">
+        <div class="card-header-bar">
+            <h2>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                Assessment Catalog
+            </h2>
+            <span class="badge badge-active">{{ page.paginator.count }} Assessments</span>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th scope="col">Title & Type</th>
+                        <th scope="col">Target Cohort</th>
+                        <th scope="col">Duration & Marks</th>
+                        <th scope="col">Deadline</th>
+                        <th scope="col">Questions Structure</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in page %}
+                    <tr>
+                        <td>
+                            <strong>{{ a.title }}</strong>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">Subject: {{ a.subject.title|default:a.branch }}</div>
+                        </td>
+                        <td>{{ a.branch }} Sem {{ a.semester }}</td>
+                        <td>{{ a.duration_minutes }} mins · {{ a.total_marks }} marks</td>
+                        <td>{{ a.deadline|date:"M d, Y H:i" }}</td>
+                        <td>
+                            <span class="badge badge-subtle">{{ a.mcq_count }} MCQs</span>
+                            {% if a.coding_count > 0 %}
+                            <span class="badge badge-info">{{ a.coding_count }} Coding</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if a.status == 'published' %}
+                            <span class="badge badge-active">Published</span>
+                            {% elif a.status == 'draft' %}
+                            <span class="badge badge-pending">Draft</span>
+                            {% else %}
+                            <span class="badge badge-alert">Archived</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap;">
+                                <a href="{% url 'teacher_assessment_preview' a.id %}" class="btn small" title="Preview Student View">👁️ Preview</a>
+                                <a href="{% url 'teacher_assessment_edit' a.id %}" class="btn small" title="Edit Assessment">✏️ Edit</a>
+                                <form method="POST" action="{% url 'teacher_assessments' %}" style="display: inline-block;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="toggle_status">
+                                    <input type="hidden" name="assessment_id" value="{{ a.id }}">
+                                    {% if a.status == 'published' %}
+                                    <input type="hidden" name="new_status" value="archived">
+                                    <button type="submit" class="btn small alert">Archive</button>
+                                    {% else %}
+                                    <input type="hidden" name="new_status" value="published">
+                                    <button type="submit" class="btn small primary">Publish</button>
+                                    {% endif %}
+                                </form>
+                                <form method="POST" action="{% url 'teacher_assessment_delete' a.id %}" onsubmit="return confirm('Are you sure you want to delete \'{{ a.title|escapejs }}\'?');" style="display: inline-block;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn small" style="color: #DC2626; border-color: #FECACA;" title="Delete Assessment">🗑️</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">You have not created any assessments yet. Click "+ Create New Assessment" above.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if page.has_other_pages %}
+        <div class="pagination-container mt-3" style="padding-top: 1rem;">
+            <div class="pagination">
+                {% if page.has_previous %}
+                <a href="?page={{ page.previous_page_number }}" class="page-link">← Previous</a>
+                {% endif %}
+                <span class="page-current">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+                {% if page.has_next %}
+                <a href="?page={{ page.next_page_number }}" class="page-link">Next →</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

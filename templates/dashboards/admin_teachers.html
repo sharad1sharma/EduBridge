@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Faculty Directory · Administration{% endblock %}
+{% block content %}
+
+<div class="card-header-bar" style="margin-bottom: 1.25rem;">
+  <div>
+    <h1 style="margin-bottom: 0.25rem;">Faculty & Teacher Directory 👨‍🏫</h1>
+    <p style="margin: 0; color: var(--text-muted);">Manage faculty credentials, inspect departmental assignments, and monitor educational contributions</p>
+  </div>
+  <div style="display: flex; gap: 0.65rem;">
+    <a class="btn primary small" href="{% url 'admin_teacher_new' %}">+ Create Teacher Account</a>
+    <a class="btn small" href="{% url 'admin_export_csv' 'teachers' %}">Export CSV</a>
+  </div>
+</div>
+
+<form method="get" class="filters">
+  <div class="field">
+    <label for="q">Search faculty</label>
+    <input id="q" name="q" value="{{ q }}" placeholder="Teacher ID (T1001), name, email...">
+  </div>
+  <div class="field">
+    <label for="department">Department</label>
+    <select id="department" name="department">
+      <option value="">All Departments</option>
+      {% for b in branches %}
+        <option value="{{ b.code }}"{% if b.code == department %} selected{% endif %}>{{ b.code }} - {{ b.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="field">
+    <label for="status">Status</label>
+    <select id="status" name="status">
+      <option value="">All Statuses</option>
+      <option value="active"{% if status == "active" %} selected{% endif %}>Active</option>
+      <option value="suspended"{% if status == "suspended" %} selected{% endif %}>Suspended</option>
+    </select>
+  </div>
+  <button class="btn primary" type="submit">Filter Faculty</button>
+</form>
+
+{% if page.object_list %}
+<div class="table-wrap">
+  <table>
+    <caption class="sr">Teacher directory</caption>
+    <thead>
+      <tr>
+        <th scope="col">Teacher ID</th>
+        <th scope="col">Faculty Name</th>
+        <th scope="col">Email Address</th>
+        <th scope="col">Department</th>
+        <th scope="col">Designation</th>
+        <th scope="col">Status</th>
+        <th scope="col">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in page.object_list %}
+      <tr>
+        <td class="mono" style="font-weight: 700; color: #6366F1;">{{ u.public_id }}</td>
+        <td>
+          <div class="user-cell">
+            <span class="user-cell-avatar" style="background: #EEF2FF; color: #6366F1;">{{ u.full_name|slice:":1"|upper }}</span>
+            <span>
+              <strong>{{ u.full_name }}</strong><br>
+              <small class="mono" style="color: var(--text-muted);">@{{ u.username }}</small>
+            </span>
+          </div>
+        </td>
+        <td>{{ u.email }}</td>
+        <td>
+          <span class="role-chip" style="background: #EEF2FF; color: #6366F1;">
+            {{ u.teacher_profile.get_department_display|default:"Unassigned" }}
+          </span>
+        </td>
+        <td>{{ u.teacher_profile.designation|default:"Faculty" }}</td>
+        <td>
+          {% if u.is_active %}
+            <span class="badge badge-active">Active</span>
+          {% else %}
+            <span class="badge badge-alert">Suspended</span>
+          {% endif %}
+        </td>
+        <td>
+          <a class="btn small" href="{% url 'admin_teacher_detail' u.pk %}">View & Manage</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "partials/pagination.html" %}
+{% else %}
+<p class="empty" style="padding: 2.5rem; text-align: center; background: #FFFFFF; border-radius: var(--radius-lg); border: 1px dashed var(--border-strong);">
+  No faculty records matched the filter criteria.
+</p>
+{% endif %}
+
+{% endblock %}

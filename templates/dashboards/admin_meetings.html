@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Meeting Supervision · Administration{% endblock %}
+{% block content %}
+
+<div class="card-header-bar" style="margin-bottom: 1.25rem;">
+  <div>
+    <h1 style="margin-bottom: 0.25rem;">Live Lectures & Meetings Oversight 📅</h1>
+    <p style="margin: 0; color: var(--text-muted);">Supervise faculty tutorials, scheduled lectures, and student doubt-clearing sessions</p>
+  </div>
+</div>
+
+<section class="card">
+  <div class="table-wrap">
+    <table>
+      <caption class="sr">Meetings oversight</caption>
+      <thead>
+        <tr>
+          <th scope="col">Meeting Title</th>
+          <th scope="col">Host Faculty</th>
+          <th scope="col">Branch & Sem</th>
+          <th scope="col">Scheduled Time</th>
+          <th scope="col">Duration</th>
+          <th scope="col">Meeting Link</th>
+          <th scope="col">Status</th>
+          <th scope="col">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in page.object_list %}
+        <tr>
+          <td><strong>{{ m.title }}</strong></td>
+          <td>{{ m.host_teacher.full_name }}</td>
+          <td><span class="role-chip">{{ m.branch }}</span> Sem {{ m.semester }}</td>
+          <td class="mono" style="font-size: 0.8rem;">{{ m.scheduled_at|date:"d M Y, H:i" }}</td>
+          <td>{{ m.duration_minutes }} mins</td>
+          <td>
+            <a href="{{ m.meeting_link }}" target="_blank" rel="noopener">Join Room ↗</a>
+          </td>
+          <td>
+            <span class="badge {% if m.status == 'scheduled' %}badge-active{% elif m.status == 'completed' %}badge-active{% else %}badge-alert{% endif %}">
+              {{ m.get_status_display }}
+            </span>
+          </td>
+          <td>
+            {% if m.status == 'scheduled' %}
+            <form method="post" onsubmit="return confirm('Cancel this meeting session?');" style="margin: 0;">{% csrf_token %}
+              <input type="hidden" name="action" value="cancel_meeting">
+              <input type="hidden" name="meeting_id" value="{{ m.pk }}">
+              <button class="btn small danger" type="submit">Cancel</button>
+            </form>
+            {% else %}
+            <span style="color: var(--text-muted); font-size: 0.8rem;">Archived</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="empty">No meetings recorded on the platform.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "partials/pagination.html" %}
+</section>
+
+{% endblock %}

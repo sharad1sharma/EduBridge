@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Profile{% endblock %}
+{% block content %}
+
+<div class="card" style="max-width: 54rem; margin: 0 auto;">
+  <div class="card-header-bar">
+    <div>
+      <h1 style="margin-bottom: 0.25rem;">{{ heading }}</h1>
+      <p style="margin: 0; color: var(--text-muted);">Manage your personal details, academic preferences, and institutional profile</p>
+    </div>
+    <span class="badge {% if percent == 100 %}badge-active{% else %}badge-pending{% endif %}">
+      {{ percent }}% Complete
+    </span>
+  </div>
+
+  <div class="meter-row" style="background: #F8FAFC; padding: 1rem 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+    <progress value="{{ percent }}" max="100" aria-label="Profile completion">{{ percent }}%</progress>
+    <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">
+      {{ percent }}% complete{% if missing %} · <span style="color: #D97706;">Still to add: {{ missing|join:", " }}</span>{% endif %}
+    </span>
+  </div>
+
+  <form method="post" class="stack" novalidate style="margin-top: 1.5rem;">{% csrf_token %}
+    {% include "partials/form_errors.html" %}
+    <div class="form-grid">
+      {% for field in form %}
+        {% if field.name != "hide_email" and field.name != "hide_phone" and field.name != "hide_student_id" and field.name != "hide_teacher_id" %}
+          {% include "partials/field.html" %}
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    <!-- Dedicated Privacy & Personal Credential Concealment Controls -->
+    <div class="card" style="margin-top: 1.5rem; border: 1px solid #CBD5E1; border-left: 4px solid var(--brand-primary, #2563EB); background: #F8FAFC; padding: 1.25rem;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+        <div>
+          <h3 style="margin: 0; font-size: 1rem; color: #0F172A; display: flex; align-items: center; gap: 0.5rem;">
+            <span>🔒 Personal Information & Credential Privacy Controls</span>
+            <span class="badge badge-active" style="font-size: 0.7rem; background: #EEF2FF; color: #4338CA;">Active Guardrail</span>
+          </h3>
+          <p style="margin: 0.35rem 0 0; font-size: 0.825rem; color: var(--text-muted);">
+            Conceal your personal credentials from peers, directories, and assistant queries.
+            <br>
+            <span style="font-size: 0.75rem; color: #64748B;">• <strong>Immutably Public:</strong> Full Name, Engineering Branch/Department, and Assigned Subjects remain visible for academic integrity.</span>
+          </p>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem;">
+        <!-- Email Hide Toggle -->
+        <label style="display: flex; align-items: center; gap: 0.75rem; background: white; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border-subtle); cursor: pointer;">
+          {{ form.hide_email }}
+          <div>
+            <strong style="font-size: 0.875rem; color: #0F172A; display: block;">Hide My Email Address ({{ user.email }})</strong>
+            <span style="font-size: 0.775rem; color: var(--text-muted);">Conceals your email address from public directories, diagnostics, and AI assistant inquiries.</span>
+          </div>
+        </label>
+
+        <!-- Phone Hide Toggle -->
+        <label style="display: flex; align-items: center; gap: 0.75rem; background: white; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border-subtle); cursor: pointer;">
+          {{ form.hide_phone }}
+          <div>
+            <strong style="font-size: 0.875rem; color: #0F172A; display: block;">Hide My Phone Number</strong>
+            <span style="font-size: 0.775rem; color: var(--text-muted);">Conceals your phone contact details from public listings and directories.</span>
+          </div>
+        </label>
+
+        <!-- Student ID / Teacher ID Hide Toggle -->
+        {% if form.hide_student_id %}
+        <label style="display: flex; align-items: center; gap: 0.75rem; background: white; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border-subtle); cursor: pointer;">
+          {{ form.hide_student_id }}
+          <div>
+            <strong style="font-size: 0.875rem; color: #0F172A; display: block;">Hide My Student ID (<span class="mono">{{ user.public_id }}</span>)</strong>
+            <span style="font-size: 0.775rem; color: var(--text-muted);">Hides your student roll ID number from public student rosters and peer search results.</span>
+          </div>
+        </label>
+        {% elif form.hide_teacher_id %}
+        <label style="display: flex; align-items: center; gap: 0.75rem; background: white; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border-subtle); cursor: pointer;">
+          {{ form.hide_teacher_id }}
+          <div>
+            <strong style="font-size: 0.875rem; color: #0F172A; display: block;">Hide My Teacher ID (<span class="mono">{{ user.public_id }}</span>)</strong>
+            <span style="font-size: 0.775rem; color: var(--text-muted);">Hides your teacher ID number from student directories.</span>
+          </div>
+        </label>
+        {% endif %}
+      </div>
+    </div>
+
+    <div style="background: #F8FAFC; padding: 0.85rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); margin: 1rem 0 1.5rem;">
+      <p class="hint" style="margin: 0;">
+        🛡️ <strong>System Note:</strong> Your identifier (<span class="mono">{{ user.public_id }}</span>) and role (<span class="role-chip">{{ user.get_role_display }}</span>) are immutable and governed by institutional directory rules.
+      </p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+      <button class="btn primary" type="submit">Save profile changes</button>
+    </div>
+  </form>
+</div>
+
+{% endblock %}

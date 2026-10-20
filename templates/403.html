@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}No access{% endblock %}
+{% block content %}
+<section class="narrow">
+  <h1>You don’t have access to this page</h1>
+  <p>This area is not available to your account type.{% if user.is_authenticated %} You are signed in as {{ user.get_role_display|lower }}.{% endif %}</p>
+  <p>{% if user.is_authenticated %}<a class="btn primary" href="{% url 'home' %}">Go to your dashboard</a>{% else %}<a class="btn primary" href="{% url 'accounts:login' %}">Sign in</a>{% endif %}</p>
+</section>
+{% endblock %}

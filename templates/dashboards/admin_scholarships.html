@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}Scholarship Administration (Admin Only) · Administration{% endblock %}
+{% block content %}
+
+<div class="card-header-bar" style="margin-bottom: 1.25rem;">
+  <div>
+    <h1 style="margin-bottom: 0.25rem;">Scholarship & Financial Aid Administration 💰</h1>
+    <p style="margin: 0; color: var(--text-muted);">
+      🔒 <strong>Restricted Access:</strong> Only authorized platform administrators can manage scholarships, eligibility criteria, and deadlines.
+    </p>
+  </div>
+  <div style="display: flex; gap: 0.65rem;">
+    <a class="btn small" href="{% url 'admin_export_csv' 'scholarships' %}">Export Scholarships CSV</a>
+  </div>
+</div>
+
+<!-- Approaching Deadlines Banner -->
+{% if approaching_count > 0 %}
+<div class="notice warn">
+  <div>
+    <strong>⚠️ Approaching Deadlines:</strong> {{ approaching_count }} scholarship(s) have application deadlines within the next 14 days. Review official provider source links below.
+  </div>
+</div>
+{% endif %}
+
+<div class="dashboard-columns-2">
+  <!-- Left: Scholarship Directory -->
+  <div style="display: flex; flex-direction: column; gap: 1.35rem;">
+
+    <section class="card">
+      <div class="card-header-bar">
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+          Active Scholarship Records ({{ total_scholarships }})
+        </h2>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Scholarship Name & Provider</th>
+              <th scope="col">Eligible Branches</th>
+              <th scope="col">Min CGPA</th>
+              <th scope="col">Deadline</th>
+              <th scope="col">Official Links</th>
+              <th scope="col">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in page.object_list %}
+            <tr>
+              <td>
+                <strong>{{ s.name }}</strong><br>
+                <small style="color: var(--text-muted);">{{ s.provider }}</small>
+              </td>
+              <td><span class="role-chip">{{ s.eligible_branches }}</span></td>
+              <td><strong>{{ s.min_cgpa }}</strong> CGPA</td>
+              <td class="mono" style="font-size: 0.8rem; {% if s.is_deadline_near %}color: #DC2626; font-weight: 700;{% endif %}">
+                {{ s.deadline|date:"d M Y" }}
+                {% if s.is_deadline_near %}<br><span class="badge badge-alert">Due Soon</span>{% endif %}
+              </td>
+              <td style="font-size: 0.8rem;">
+                <a href="{{ s.official_application_url }}" target="_blank" rel="noopener">Application Portal ↗</a><br>
+                <a href="{{ s.official_source_url }}" target="_blank" rel="noopener" style="color: var(--text-muted);">Source Verification ↗</a>
+              </td>
+              <td>
+                <form method="post" onsubmit="return confirm('Delete scholarship {{ s.name }}?');" style="margin: 0;">{% csrf_token %}
+                  <input type="hidden" name="action" value="delete_scholarship">
+                  <input type="hidden" name="scholarship_id" value="{{ s.pk }}">
+                  <button class="btn small danger" type="submit">Delete</button>
+                </form>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="empty">No scholarships registered.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% include "partials/pagination.html" %}
+    </section>
+
+  </div>
+
+  <!-- Right: Add New Scholarship Form (Admin Only) -->
+  <div style="display: flex; flex-direction: column; gap: 1.35rem;">
+
+    <section class="card">
+      <div class="card-header-bar">
+        <h2>+ Register New Scholarship</h2>
+        <span class="badge badge-active">Admin Only</span>
+      </div>
+      <form method="post">{% csrf_token %}
+        <input type="hidden" name="action" value="add_scholarship">
+        
+        <div class="field">
+          <label for="name">Scholarship Name</label>
+          <input id="name" name="name" placeholder="e.g. Reliance Foundation Undergraduate Scholarship" required>
+        </div>
+
+        <div class="field">
+          <label for="provider">Official Provider / Government Body</label>
+          <input id="provider" name="provider" placeholder="e.g. AICTE / Ministry of Education" required>
+        </div>
+
+        <div class="form-grid">
+          <div class="field">
+            <label for="min_cgpa">Minimum CGPA Required</label>
+            <input id="min_cgpa" name="min_cgpa" type="number" step="0.1" value="7.5" required>
+          </div>
+          <div class="field">
+            <label for="deadline">Application Deadline</label>
+            <input id="deadline" name="deadline" type="date" required>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="eligible_branches">Eligible B.Tech Branches</label>
+          <input id="eligible_branches" name="eligible_branches" value="All Branches" placeholder="e.g. CSE, ECE, IT or All Branches">
+        </div>
+
+        <div class="field">
+          <label for="official_application_url">Official Application URL</label>
+          <input id="official_application_url" name="official_application_url" type="url" placeholder="https://..." required>
+        </div>
+
+        <div class="field">
+          <label for="official_source_url">Official Source Notification URL</label>
+          <input id="official_source_url" name="official_source_url" type="url" placeholder="https://..." required>
+        </div>
+
+        <div class="field">
+          <label for="description">Eligibility & Purpose Description</label>
+          <textarea id="description" name="description" rows="3" placeholder="Eligibility criteria, income limits, and guidelines..." required></textarea>
+        </div>
+
+        <button class="btn primary" type="submit" style="width: 100%;">Publish Verified Scholarship</button>
+      </form>
+    </section>
+
+  </div>
+</div>
+
+{% endblock %}

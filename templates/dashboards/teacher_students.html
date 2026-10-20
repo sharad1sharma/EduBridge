@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Student Directory | Faculty Portal{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="card-header-bar" style="margin-bottom: 1.25rem;">
+        <div>
+            <div class="admin-badge-pill" style="background: #EEF2FF; color: #6366F1;">Academic Cohorts</div>
+            <h1 style="margin: 0.25rem 0 0.25rem;">Faculty Student Directory</h1>
+            <p style="margin: 0; color: var(--text-muted);">Enrolled students across your assigned engineering departments and course cohorts.</p>
+        </div>
+        <div>
+            <a href="{% url 'teacher_dashboard' %}" class="btn">← Back to Dashboard</a>
+        </div>
+    </div>
+
+    <!-- Filters Bar -->
+    <div class="card" style="margin-bottom: 1.5rem; padding: 1.25rem;">
+        <form method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) 100px; gap: 0.85rem; align-items: end;">
+            <div>
+                <label for="q" style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.35rem;">Search Student</label>
+                <input type="text" name="q" id="q" value="{{ q }}" placeholder="Name, Roll ID (e.g. S1001)..." class="form-input">
+            </div>
+            <div>
+                <label for="branch" style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.35rem;">Engineering Branch</label>
+                <select name="branch" id="branch" class="form-select">
+                    <option value="">All Branches</option>
+                    {% for b in branches %}
+                    <option value="{{ b.code }}" {% if branch == b.code %}selected{% endif %}>{{ b.code }} - {{ b.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="semester" style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.35rem;">Semester</label>
+                <select name="semester" id="semester" class="form-select">
+                    <option value="">All Semesters</option>
+                    {% for sem in "12345678" %}
+                    <option value="{{ sem }}" {% if semester == sem %}selected{% endif %}>Semester {{ sem }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <button type="submit" class="btn primary" style="width: 100%;">Filter</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Students Table -->
+    <div class="card">
+        <div class="card-header-bar">
+            <h2>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+                Registered Students
+            </h2>
+            <span class="badge badge-active">{{ page.paginator.count }} Total</span>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th scope="col">Student Name</th>
+                        <th scope="col">Student ID</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Branch & Semester</th>
+                        <th scope="col">Account Status</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in page %}
+                    <tr>
+                        <td>
+                            <strong>{{ s.full_name }}</strong>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">{{ s.username }}</div>
+                        </td>
+                        <td><span class="mono fw-bold" style="color: #4338CA;">{{ s.public_id }}</span></td>
+                        <td>{{ s.email }}</td>
+                        <td>{{ s.student_profile.branch }} Sem {{ s.student_profile.semester }}</td>
+                        <td>
+                            {% if s.is_active %}
+                            <span class="badge badge-active">Active</span>
+                            {% else %}
+                            <span class="badge badge-alert">Suspended</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'teacher_student_detail' s.id %}" class="btn small primary">Performance Diagnostics ↗</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">No student records found matching the query.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if page.has_other_pages %}
+        <div class="pagination-container mt-3" style="padding-top: 1rem;">
+            <div class="pagination">
+                {% if page.has_previous %}
+                <a href="?page={{ page.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if branch %}&branch={{ branch }}{% endif %}" class="page-link">← Previous</a>
+                {% endif %}
+                <span class="page-current">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+                {% if page.has_next %}
+                <a href="?page={{ page.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if branch %}&branch={{ branch }}{% endif %}" class="page-link">Next →</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,699 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Academic Analytics · Student Portal{% endblock %}
+
+{% block content %}
+<style>
+  /* Standalone, immune to caching: Modern Analytics Dashboard Theme */
+  .analytics-page-wrap {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem;
+  }
+  .analytics-header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  .analytics-filter-cluster {
+    display: flex;
+    gap: 0.65rem;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    background: var(--surface-card, #FFFFFF);
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--border-subtle, #E2E8F0);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .analytics-filter-select {
+    padding: 0.45rem 0.75rem;
+    font-size: 0.825rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-subtle, #CBD5E1);
+    background: var(--bg-canvas, #F8FAFC);
+    color: var(--text-main, #0F172A);
+    font-weight: 500;
+    min-width: 140px;
+  }
+
+  /* Visual Charts Layout - Visual Charts First */
+  /* Visual Charts Layout - Visual Charts First */
+  .charts-hero-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+  @media (max-width: 992px) {
+    .charts-hero-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .charts-sub-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  @media (max-width: 768px) {
+    .charts-sub-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .analytics-chart-panel {
+    background: var(--surface-card, #FFFFFF);
+    border: 1px solid var(--border-subtle, #E2E8F0);
+    border-radius: 14px;
+    padding: 1.25rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .analytics-chart-panel:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  }
+  .analytics-chart-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .analytics-chart-panel-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-main, #0F172A);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  /* Metric Cards Grid */
+  .analytics-metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .analytics-metric-card {
+    background: var(--surface-card, #FFFFFF);
+    border: 1px solid var(--border-subtle, #E2E8F0);
+    border-radius: 12px;
+    padding: 1.15rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .analytics-metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.07);
+  }
+  .analytics-metric-card-label {
+    font-size: 0.775rem;
+    font-weight: 600;
+    color: var(--text-muted, #64748B);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.4rem;
+  }
+  .analytics-metric-card-val {
+    font-size: 1.85rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--text-main, #0F172A);
+    letter-spacing: -0.02em;
+    font-family: var(--font-family, system-ui, sans-serif);
+  }
+  .analytics-metric-card-sub {
+    font-size: 0.725rem;
+    color: var(--text-muted, #64748B);
+    margin-top: 0.45rem;
+  }
+  .status-reveal {
+    font-weight: 700;
+    letter-spacing: 0.03em;
+  }
+  .advice-card {
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-start;
+    padding: 1rem;
+    border-radius: 10px;
+    background: var(--bg-canvas, #F8FAFC);
+    border: 1px solid var(--border-subtle, #E2E8F0);
+    transition: background 0.15s ease;
+  }
+  .advice-card:hover {
+    background: #FFFFFF;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  }
+</style>
+
+<div class="analytics-page-wrap">
+
+  <!-- Header & Filter Bar -->
+  <div class="analytics-header-container">
+    <div>
+      <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+        <span class="badge badge-info" style="font-weight: 700; font-size: 0.75rem;">Student Intelligence</span>
+        <span class="role-chip">{{ analytics.student.public_id }} · {{ analytics.student.branch }} Sem {{ analytics.student.semester }}</span>
+      </div>
+      <h1 style="margin: 0; font-size: 1.75rem; font-weight: 800; letter-spacing: -0.02em;">Personal Academic Analytics</h1>
+      <p style="margin: 0.25rem 0 0; color: var(--text-muted); font-size: 0.875rem;">Interactive telemetry, visual grade trajectories, and subject diagnostic breakdown.</p>
+    </div>
+
+    <!-- Filter Cluster -->
+    <div class="analytics-filter-cluster">
+      <div>
+        <label for="studentSubjectFilter" style="font-size: 0.725rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.2rem;">Subject</label>
+        <select id="studentSubjectFilter" class="analytics-filter-select">
+          <option value="">All Enrolled Subjects ({{ analytics.subjects|length }})</option>
+          {% for s in analytics.subjects %}
+          <option value="{{ s.id }}" {% if selected_subject_id == s.id|stringformat:"s" %}selected{% endif %}>{{ s.code }} - {{ s.title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label for="studentRangeFilter" style="font-size: 0.725rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.2rem;">Timeframe</label>
+        <select id="studentRangeFilter" class="analytics-filter-select">
+          <option value="7d" {% if selected_range == '7d' %}selected{% endif %}>Past 7 Days</option>
+          <option value="30d" {% if selected_range == '30d' %}selected{% endif %}>Past 30 Days</option>
+          <option value="90d" {% if selected_range == '90d' %}selected{% endif %}>Past 90 Days</option>
+          <option value="all" {% if selected_range == 'all' %}selected{% endif %}>Full Academic Year</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="studentTypeFilter" style="font-size: 0.725rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.2rem;">Type</label>
+        <select id="studentTypeFilter" class="analytics-filter-select">
+          <option value="all">All Assessments</option>
+          <option value="daily_assignment">Daily MCQs</option>
+          <option value="weekly_test">Weekly Tests</option>
+        </select>
+      </div>
+
+      <div style="align-self: flex-end;">
+        <button id="studentResetFiltersBtn" class="btn small" type="button" title="Reset all filters">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 1. VISUAL CHARTS FIRST: ALL 5 VISUALIZATIONS BEFORE SUMMARY CARDS         -->
+  <!-- ========================================================================= -->
+
+  <!-- Top Hero Charts: Subject-Wise Bar Chart + Academic Performance Line Chart -->
+  <div class="charts-hero-grid">
+
+    <!-- Chart A: Subject-Wise Performance Bar Chart -->
+    <div class="analytics-chart-panel">
+      <div class="analytics-chart-panel-header">
+        <h3 class="analytics-chart-panel-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+          Chart A: Subject-Wise Performance (Bar Chart)
+        </h3>
+        <span class="badge badge-subtle">All Enrolled Courses</span>
+      </div>
+      <p style="font-size: 0.8rem; color: var(--text-muted); margin: -0.5rem 0 0.85rem;">Actual assessment percentage scores achieved across your enrolled curriculum courses.</p>
+      <div id="studentSubjectBarsChartContainer" style="min-height: 200px;"></div>
+    </div>
+
+    <!-- Chart B: Academic Performance Line Chart -->
+    <div class="analytics-chart-panel">
+      <div class="analytics-chart-panel-header">
+        <h3 class="analytics-chart-panel-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline></svg>
+          Chart B: Academic Performance Trajectory (Line Chart)
+        </h3>
+        <span class="badge badge-active">Score Trends</span>
+      </div>
+      <p style="font-size: 0.8rem; color: var(--text-muted); margin: -0.5rem 0 0.85rem;">Chronological evaluation scores achieved across daily MCQs and weekly tests over time.</p>
+      <div id="studentScoreTrendChartContainer" style="min-height: 200px;"></div>
+    </div>
+
+  </div>
+
+  <!-- Secondary Charts Row (3 Visualizations): Task Progress Donut + Learning Activity Area + Attendance Donut -->
+  <div class="charts-sub-grid">
+
+    <!-- Chart C: Academic Progress Doughnut Chart -->
+    <div class="analytics-chart-panel">
+      <div class="analytics-chart-panel-header">
+        <h3 class="analytics-chart-panel-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 10"></polyline></svg>
+          Chart C: Progress Doughnut Chart
+        </h3>
+        <span class="badge badge-info" id="badgeTaskRatio">{{ analytics.overview.completed_assignments }}/{{ analytics.overview.completed_assignments|add:analytics.overview.pending_assignments }}</span>
+      </div>
+      <p style="font-size: 0.8rem; color: var(--text-muted); margin: -0.5rem 0 0.85rem;">Completed tasks versus pending syllabus assessments.</p>
+      <div id="studentProgressDonutContainer" style="min-height: 200px; display: flex; justify-content: center; align-items: center;"></div>
+    </div>
+
+    <!-- Chart D: Learning Activity Area Chart (Verified Session Logs) -->
+    <div class="analytics-chart-panel">
+      <div class="analytics-chart-panel-header">
+        <h3 class="analytics-chart-panel-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          Chart D: Learning Activity (Time Log)
+        </h3>
+        <span class="badge badge-active">Verified Sessions</span>
+      </div>
+      <p style="font-size: 0.8rem; color: var(--text-muted); margin: -0.5rem 0 0.85rem;">Active daily learning minutes spent solving evaluations and coding practice.</p>
+      <div id="studentActivityChartContainer" style="min-height: 200px;"></div>
+    </div>
+
+    <!-- Chart E: Attendance Chart (Actual Attendance Records) -->
+    <div class="analytics-chart-panel">
+      <div class="analytics-chart-panel-header">
+        <h3 class="analytics-chart-panel-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line></svg>
+          Chart E: Attendance Telemetry (Donut)
+        </h3>
+        <span class="badge badge-active">{{ analytics.overview.attendance_percentage }}</span>
+      </div>
+      <p style="font-size: 0.8rem; color: var(--text-muted); margin: -0.5rem 0 0.85rem;">Present, absent, and late session rates from institutional attendance records.</p>
+      <div id="studentAttendanceChartContainer" style="min-height: 200px; display: flex; justify-content: center; align-items: center;"></div>
+    </div>
+
+  </div>
+
+
+  <!-- ========================================================================= -->
+  <!-- 2. ANIMATED SUMMARY CARDS (COUNT-UP ANIMATIONS 0 -> ACTUAL VALUES)        -->
+  <!-- ========================================================================= -->
+  <div class="analytics-metric-grid" style="margin-top: 0.5rem;">
+
+    <div class="analytics-metric-card">
+      <div class="analytics-metric-card-label">
+        <span>Enrolled Subjects</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+      </div>
+      <div class="analytics-metric-card-val" style="color: var(--primary, #4F46E5);" id="statEnrolledSubjects" data-countup data-countup-target="{{ analytics.overview.total_enrolled_subjects }}">
+        {{ analytics.overview.total_enrolled_subjects }}
+      </div>
+      <div class="analytics-metric-card-sub">Semester {{ analytics.student.semester }} curriculum courses</div>
+    </div>
+
+    <div class="analytics-metric-card">
+      <div class="analytics-metric-card-label">
+        <span>Academic Performance</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline></svg>
+      </div>
+      <div class="analytics-metric-card-val" style="color: #059669;" id="statOverallPct" data-countup data-countup-target="{{ analytics.overview.overall_performance_pct }}" data-countup-suffix="%" data-countup-decimals="1">
+        {{ analytics.overview.overall_performance_pct }}%
+      </div>
+      <div class="analytics-metric-card-sub">Grade: <strong class="status-reveal" data-text-reveal="{{ analytics.overview.grade }}">{{ analytics.overview.grade }}</strong> · GPA: <strong>{{ analytics.overview.gpa }}</strong></div>
+    </div>
+
+    <div class="analytics-metric-card">
+      <div class="analytics-metric-card-label">
+        <span>Subject Completion</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+      </div>
+      <div class="analytics-metric-card-val" style="color: #0284C7;" id="statCompletionPct" data-countup data-countup-target="{{ analytics.overview.completion_percentage }}" data-countup-suffix="%" data-countup-decimals="1">
+        {{ analytics.overview.completion_percentage }}%
+      </div>
+      <div class="analytics-metric-card-sub">{{ analytics.overview.completed_assignments }} of {{ analytics.overview.completed_assignments|add:analytics.overview.pending_assignments }} tasks</div>
+    </div>
+
+    <div class="analytics-metric-card">
+      <div class="analytics-metric-card-label">
+        <span>Active Learning Time</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+      </div>
+      <div class="analytics-metric-card-val" style="color: #7C3AED;" id="statLearningHours" data-countup data-countup-target="{{ analytics.overview.total_learning_hours }}" data-countup-suffix="h" data-countup-decimals="1">
+        {{ analytics.overview.total_learning_hours }}h
+      </div>
+      <div class="analytics-metric-card-sub">Today: {{ analytics.overview.daily_learning_minutes }}m · 7D: {{ analytics.overview.weekly_learning_hours }}h</div>
+    </div>
+
+    <div class="analytics-metric-card">
+      <div class="analytics-metric-card-label">
+        <span>Learning Streak</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+      </div>
+      <div class="analytics-metric-card-val" style="color: #D97706;" id="statStreakDays" data-countup data-countup-target="{{ analytics.overview.learning_streak_days }}" data-countup-suffix=" days">
+        {{ analytics.overview.learning_streak_days }} days
+      </div>
+      <div class="analytics-metric-card-sub">Consecutive active study</div>
+    </div>
+
+    <div class="analytics-metric-card">
+      <div class="analytics-metric-card-label">
+        <span>Batch Attendance</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line></svg>
+      </div>
+      <div class="analytics-metric-card-val" style="color: var(--text-muted, #64748B); font-size: 1.5rem;" id="statAttendance">
+        {{ analytics.overview.attendance_percentage }}
+      </div>
+      <div class="analytics-metric-card-sub" title="{{ analytics.overview.attendance_note }}">{{ analytics.overview.attendance_note|truncatechars:28 }}</div>
+    </div>
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 3. SUBJECT-WISE DETAILED DIAGNOSTICS TABLE                                -->
+  <!-- ========================================================================= -->
+  <div class="analytics-chart-panel" style="margin-bottom: 1.5rem;">
+    <div class="analytics-chart-panel-header">
+      <h3 class="analytics-chart-panel-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+        Subject-Wise Academic Diagnostic Progress
+      </h3>
+      <span class="badge badge-active" id="badgeSubjectCount">{{ analytics.subjects|length }} Enrolled Courses</span>
+    </div>
+
+    <div style="overflow-x: auto;">
+      <table class="table-compact" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;" id="studentSubjectTable">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--border-subtle, #E2E8F0); text-align: left; color: var(--text-muted);">
+            <th style="padding: 0.75rem 0.5rem;">Subject Code & Title</th>
+            <th style="padding: 0.75rem 0.5rem;">Credits</th>
+            <th style="padding: 0.75rem 0.5rem;">Average Score</th>
+            <th style="padding: 0.75rem 0.5rem;">Tasks Progress</th>
+            <th style="padding: 0.75rem 0.5rem;">Active Time</th>
+            <th style="padding: 0.75rem 0.5rem;">Academic Status</th>
+          </tr>
+        </thead>
+        <tbody id="studentSubjectTableBody">
+          {% for s in analytics.subjects %}
+          <tr style="border-bottom: 1px solid var(--border-subtle, #E2E8F0);">
+            <td style="padding: 0.75rem 0.5rem;">
+              <strong>{{ s.code }}</strong> — {{ s.title }}
+            </td>
+            <td style="padding: 0.75rem 0.5rem;"><span class="mono">{{ s.credits }}</span></td>
+            <td style="padding: 0.75rem 0.5rem;">
+              <strong style="color: {% if s.average_score >= 70 %}#059669{% elif s.average_score >= 50 %}#D97706{% else %}#DC2626{% endif %};">
+                {{ s.average_score }} / 100
+              </strong>
+            </td>
+            <td style="padding: 0.75rem 0.5rem; min-width: 160px;">
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <div style="flex: 1; height: 6px; background: var(--bg-canvas, #F1F5F9); border-radius: 999px; overflow: hidden;">
+                  <div style="height: 100%; width: {{ s.completion_rate }}%; background: var(--primary, #4F46E5);"></div>
+                </div>
+                <span style="font-size: 0.75rem; font-weight: 700;">{{ s.completed_assessments }}/{{ s.total_assessments }} ({{ s.completion_rate }}%)</span>
+              </div>
+            </td>
+            <td style="padding: 0.75rem 0.5rem;"><span class="mono">{{ s.learning_hours }}h</span></td>
+            <td style="padding: 0.75rem 0.5rem;">
+              <span class="badge badge-{{ s.badge }} status-reveal" data-text-reveal="{{ s.status_text }}">{{ s.status_text }}</span>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="text-muted text-center p-3">No course enrollments detected for your profile.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 4. PERSONALIZED ACADEMIC IMPROVEMENT ADVICE (TELEMETRY DRIVEN)            -->
+  <!-- ========================================================================= -->
+  <div class="analytics-chart-panel" style="margin-bottom: 1.5rem;">
+    <div class="analytics-chart-panel-header">
+      <h3 class="analytics-chart-panel-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        Personal Academic Improvement Advice
+      </h3>
+      <span class="badge badge-active">Telemetry Driven</span>
+    </div>
+    <p style="font-size: 0.8rem; color: var(--text-muted); margin: -0.5rem 0 1rem;">Actionable guidance calculated from your actual assessment attempts, quiz submissions, and active learning velocity.</p>
+
+    <div style="display: flex; flex-direction: column; gap: 0.85rem;" id="studentSuggestionsContainer">
+      {% for tip in analytics.suggestions %}
+      <div class="advice-card">
+        <span style="font-size: 1.35rem; line-height: 1;">
+          {% if tip.priority == 'High' %}🔴{% elif tip.priority == 'Medium' %}🟡{% else %}🟢{% endif %}
+        </span>
+        <div style="flex: 1;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem; flex-wrap: wrap; gap: 0.5rem;">
+            <strong style="font-size: 0.9rem; color: var(--text-main, #0F172A);">{{ tip.subject }}</strong>
+            <div style="display: flex; gap: 0.4rem; align-items: center;">
+              {% if tip.metric %}
+              <span class="mono small" style="background: var(--bg-canvas, #F1F5F9); padding: 0.15rem 0.45rem; border-radius: 4px; font-weight: 700;">{{ tip.metric }}</span>
+              {% endif %}
+              <span class="badge {% if tip.priority == 'High' %}badge-alert{% elif tip.priority == 'Medium' %}badge-pending{% else %}badge-active{% endif %}">
+                {{ tip.priority }} Priority
+              </span>
+            </div>
+          </div>
+          <div style="font-size: 0.825rem; color: var(--text-muted, #64748B); margin-bottom: 0.35rem;">
+            <strong>Evidence:</strong> {{ tip.evidence }}
+          </div>
+          <div style="font-size: 0.85rem; color: var(--text-main, #1E293B); font-weight: 500;">
+            👉 <strong>Recommended Action:</strong> {{ tip.action }}
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="text-muted p-3 text-center" style="font-size: 0.85rem;">
+        More assessment activity and study session data needed to generate personalized study suggestions.
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  // Preloaded data from server payload
+  const initialCharts = {{ analytics.charts|safe }};
+  const initialTrends = {{ analytics.trends|safe }};
+
+  function renderAllStudentCharts(chartsData, trendsData) {
+    if (!window.EduBridgeCharts) return;
+
+    // Chart A: Subject-Wise Performance Bar Chart (All Enrolled Subjects)
+    const subjBarsContainer = document.getElementById('studentSubjectBarsChartContainer');
+    if (subjBarsContainer) {
+      const bars = chartsData.subject_bars || { labels: [], scores: [] };
+      if (bars.labels && bars.labels.length > 0) {
+        EduBridgeCharts.renderBarChart(subjBarsContainer, {
+          labels: bars.labels,
+          values: bars.scores
+        }, {
+          color: '#4F46E5',
+          unit: '% Avg',
+          emptyMessage: 'No enrolled subjects found'
+        });
+      } else {
+        EduBridgeCharts.renderEmptyState(subjBarsContainer, 'No subject diagnostic records available');
+      }
+    }
+
+    // Chart B: Academic Performance Trajectory Line Chart
+    const scoreContainer = document.getElementById('studentScoreTrendChartContainer');
+    if (scoreContainer) {
+      EduBridgeCharts.renderLineChart(scoreContainer, {
+        labels: trendsData.labels,
+        values: trendsData.scores
+      }, {
+        strokeColor: '#059669',
+        fillColor: 'rgba(5, 150, 105, 0.12)',
+        unit: 'Marks',
+        emptyMessage: 'No completed quiz attempts recorded in this timeframe'
+      });
+    }
+
+    // Chart C: Academic Task Progress Doughnut Chart
+    const donutContainer = document.getElementById('studentProgressDonutContainer');
+    if (donutContainer) {
+      const prog = chartsData.progress_donut || { completed: 0, pending: 0 };
+      const hasTasks = (prog.completed + prog.pending) > 0;
+      if (hasTasks) {
+        EduBridgeCharts.renderDonutChart(donutContainer, [
+          { label: 'Completed Assessments', value: prog.completed, color: '#10B981' },
+          { label: 'Pending Assessments', value: prog.pending, color: '#F59E0B' }
+        ], {
+          centerText: Math.round((prog.completed / (prog.completed + prog.pending)) * 100) + '%',
+          centerLabel: 'Complete'
+        });
+      } else {
+        EduBridgeCharts.renderEmptyState(donutContainer, 'No syllabus assessments scheduled for this term');
+      }
+    }
+
+    // Chart D: Learning Activity Area / Line Chart
+    const activityContainer = document.getElementById('studentActivityChartContainer');
+    if (activityContainer) {
+      EduBridgeCharts.renderLineChart(activityContainer, {
+        labels: trendsData.labels,
+        values: trendsData.activity_minutes
+      }, {
+        strokeColor: '#3B82F6',
+        fillColor: 'rgba(59, 130, 246, 0.15)',
+        unit: 'mins',
+        emptyMessage: 'No verified study activity recorded in this timeframe'
+      });
+    }
+
+    // Chart E: Attendance Doughnut Chart
+    const attContainer = document.getElementById('studentAttendanceChartContainer');
+    if (attContainer) {
+      const att = chartsData.attendance_chart || { present: 0, absent: 0, late: 0, total: 0, rate: 0 };
+      if (att.total > 0) {
+        EduBridgeCharts.renderDonutChart(attContainer, [
+          { label: 'Present Sessions', value: att.present, color: '#10B981' },
+          { label: 'Absent Sessions', value: att.absent, color: '#EF4444' },
+          { label: 'Late Sessions', value: att.late, color: '#F59E0B' }
+        ], {
+          centerText: att.rate + '%',
+          centerLabel: 'Attended'
+        });
+      } else {
+        EduBridgeCharts.renderEmptyState(attContainer, 'No session attendance recorded yet');
+      }
+    }
+  }
+
+  // Initial render
+  renderAllStudentCharts(initialCharts, initialTrends);
+
+  // Filter Event Listeners
+  const subjectSelect = document.getElementById('studentSubjectFilter');
+  const rangeSelect = document.getElementById('studentRangeFilter');
+  const typeSelect = document.getElementById('studentTypeFilter');
+  const resetBtn = document.getElementById('studentResetFiltersBtn');
+
+  function reloadStudentAnalytics() {
+    const sId = subjectSelect.value;
+    const rng = rangeSelect.value;
+    const typ = typeSelect.value;
+
+    const url = `/api/student/analytics/?subject_id=${encodeURIComponent(sId)}&range=${encodeURIComponent(rng)}&type=${encodeURIComponent(typ)}`;
+
+    if (window.EduBridgeCharts) {
+      EduBridgeCharts.setLoading(document.getElementById('studentSubjectBarsChartContainer'));
+      EduBridgeCharts.setLoading(document.getElementById('studentScoreTrendChartContainer'));
+      EduBridgeCharts.setLoading(document.getElementById('studentProgressDonutContainer'));
+      EduBridgeCharts.setLoading(document.getElementById('studentActivityChartContainer'));
+      EduBridgeCharts.setLoading(document.getElementById('studentAttendanceChartContainer'));
+    }
+
+    fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success' && data.data) {
+          const res = data.data;
+
+          // Re-trigger Count-Up Animations
+          if (window.EduBridgeCountUp) {
+            EduBridgeCountUp.update(document.getElementById('statEnrolledSubjects'), res.overview.total_enrolled_subjects);
+            EduBridgeCountUp.update(document.getElementById('statOverallPct'), res.overview.overall_performance_pct);
+            EduBridgeCountUp.update(document.getElementById('statCompletionPct'), res.overview.completion_percentage);
+            EduBridgeCountUp.update(document.getElementById('statLearningHours'), res.overview.total_learning_hours);
+            EduBridgeCountUp.update(document.getElementById('statStreakDays'), res.overview.learning_streak_days);
+          }
+
+          // Re-trigger Text Reveal on Grade
+          if (window.EduBridgeTextReveal) {
+            const gradeEl = document.querySelector('.analytics-metric-card-sub strong.status-reveal');
+            if (gradeEl) {
+              EduBridgeTextReveal.update(gradeEl, res.overview.grade);
+            }
+          }
+
+          // Re-render and replay charts
+          renderAllStudentCharts(res.charts, res.trends);
+
+          // Update table rows
+          if (res.subjects && res.subjects.length > 0) {
+            const tbody = document.getElementById('studentSubjectTableBody');
+            tbody.innerHTML = res.subjects.map(s => `
+              <tr style="border-bottom: 1px solid var(--border-subtle, #E2E8F0);">
+                <td style="padding: 0.75rem 0.5rem;"><strong>${s.code}</strong> — ${s.title}</td>
+                <td style="padding: 0.75rem 0.5rem;"><span class="mono">${s.credits}</span></td>
+                <td style="padding: 0.75rem 0.5rem;">
+                  <strong style="color: ${s.average_score >= 70 ? '#059669' : (s.average_score >= 50 ? '#D97706' : '#DC2626')};">
+                    ${s.average_score} / 100
+                  </strong>
+                </td>
+                <td style="padding: 0.75rem 0.5rem; min-width: 160px;">
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <div style="flex: 1; height: 6px; background: var(--bg-canvas, #F1F5F9); border-radius: 999px; overflow: hidden;">
+                      <div style="height: 100%; width: ${s.completion_rate}%; background: var(--primary, #4F46E5);"></div>
+                    </div>
+                    <span style="font-size: 0.75rem; font-weight: 700;">${s.completed_assessments}/${s.total_assessments} (${s.completion_rate}%)</span>
+                  </div>
+                </td>
+                <td style="padding: 0.75rem 0.5rem;"><span class="mono">${s.learning_hours}h</span></td>
+                <td style="padding: 0.75rem 0.5rem;">
+                  <span class="badge badge-${s.badge} status-reveal" data-text-reveal="${s.status_text}">${s.status_text}</span>
+                </td>
+              </tr>
+            `).join('');
+
+            if (window.EduBridgeTextReveal) {
+              EduBridgeTextReveal.revealAll(tbody, 50);
+            }
+          }
+
+          // Update Suggestions
+          if (res.suggestions) {
+            const sugContainer = document.getElementById('studentSuggestionsContainer');
+            if (sugContainer) {
+              sugContainer.innerHTML = res.suggestions.map(tip => `
+                <div class="advice-card">
+                  <span style="font-size: 1.35rem; line-height: 1;">
+                    ${tip.priority === 'High' ? '🔴' : (tip.priority === 'Medium' ? '🟡' : '🟢')}
+                  </span>
+                  <div style="flex: 1;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem; flex-wrap: wrap; gap: 0.5rem;">
+                      <strong style="font-size: 0.9rem; color: var(--text-main, #0F172A);">${tip.subject}</strong>
+                      <div style="display: flex; gap: 0.4rem; align-items: center;">
+                        ${tip.metric ? `<span class="mono small" style="background: var(--bg-canvas, #F1F5F9); padding: 0.15rem 0.45rem; border-radius: 4px; font-weight: 700;">${tip.metric}</span>` : ''}
+                        <span class="badge ${tip.priority === 'High' ? 'badge-alert' : (tip.priority === 'Medium' ? 'badge-pending' : 'badge-active')}">
+                          ${tip.priority} Priority
+                        </span>
+                      </div>
+                    </div>
+                    <div style="font-size: 0.825rem; color: var(--text-muted, #64748B); margin-bottom: 0.35rem;">
+                      <strong>Evidence:</strong> ${tip.evidence}
+                    </div>
+                    <div style="font-size: 0.85rem; color: var(--text-main, #1E293B); font-weight: 500;">
+                      👉 <strong>Recommended Action:</strong> ${tip.action}
+                    </div>
+                  </div>
+                </div>
+              `).join('');
+            }
+          }
+        }
+      })
+      .catch(err => {
+        console.error('Error reloading student analytics:', err);
+      });
+  }
+
+  subjectSelect.addEventListener('change', reloadStudentAnalytics);
+  rangeSelect.addEventListener('change', reloadStudentAnalytics);
+  typeSelect.addEventListener('change', reloadStudentAnalytics);
+
+  resetBtn.addEventListener('click', function () {
+    subjectSelect.value = '';
+    rangeSelect.value = '30d';
+    typeSelect.value = 'all';
+    reloadStudentAnalytics();
+  });
+});
+</script>
+{% endblock %}

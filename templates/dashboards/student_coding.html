@@ -1,0 +1,420 @@
+{% extends "base.html" %}
+
+{% block title %}Coding Resources & DSA Practice Hub | EduBridge{% endblock %}
+
+{% block content %}
+<style>
+/* Coding Resources & DSA Practice Hub Styles */
+.coding-hub-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.coding-hub-title {
+    margin: 0;
+    font-size: 1.85rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--text-main, #0F172A);
+}
+.coding-hub-sub {
+    margin: 0.25rem 0 0;
+    color: var(--text-muted, #64748B);
+    font-size: 0.9rem;
+}
+
+/* Navigation Section Tabs (Area A vs Area B) */
+.hub-nav-tabs {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 2px solid var(--border-subtle, #E2E8F0);
+    margin-bottom: 1.5rem;
+}
+.hub-nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-muted, #64748B);
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s ease;
+}
+.hub-nav-btn:hover {
+    color: var(--primary, #4F46E5);
+}
+.hub-nav-btn.active {
+    color: var(--primary, #4F46E5);
+    border-bottom-color: var(--primary, #4F46E5);
+}
+
+/* Category Filter Bar */
+.category-filter-strip {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1.25rem;
+    scrollbar-width: thin;
+}
+.category-chip-btn {
+    white-space: nowrap;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: 1px solid var(--border-subtle, #E2E8F0);
+    background: #FFFFFF;
+    color: var(--text-secondary, #334155);
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+.category-chip-btn:hover, .category-chip-btn.active {
+    background: var(--primary, #4F46E5);
+    color: #FFFFFF;
+    border-color: var(--primary, #4F46E5);
+    box-shadow: 0 2px 6px rgba(79, 70, 229, 0.25);
+}
+
+/* Card Grids */
+.resource-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+@media (max-width: 640px) {
+    .resource-cards-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Resource Card Styling */
+.hub-card {
+    background: #FFFFFF;
+    border: 1px solid var(--border-subtle, #E2E8F0);
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.hub-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    border-color: var(--primary, #4F46E5);
+}
+
+/* Thumbnail with Object-Fit */
+.hub-card-thumb-wrap {
+    width: 100%;
+    height: 175px;
+    position: relative;
+    background: #F1F5F9;
+    overflow: hidden;
+}
+.hub-card-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+}
+.hub-card:hover .hub-card-thumb {
+    transform: scale(1.04);
+}
+.hub-card-badge-strip {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 0.35rem;
+}
+
+/* Card Body */
+.hub-card-body {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+.hub-card-category {
+    font-size: 0.725rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--primary, #4F46E5);
+    margin-bottom: 0.35rem;
+}
+.hub-card-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-main, #0F172A);
+    margin: 0 0 0.5rem;
+    line-height: 1.35;
+}
+.hub-card-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted, #64748B);
+    line-height: 1.5;
+    margin-bottom: 1rem;
+    flex: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Card Meta & Action */
+.hub-card-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.775rem;
+    color: var(--text-muted, #64748B);
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-subtle, #F1F5F9);
+    margin-bottom: 1rem;
+}
+.hub-card-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    width: 100%;
+    padding: 0.65rem 1rem;
+    border-radius: 8px;
+    background: var(--primary, #4F46E5);
+    color: #FFFFFF;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.875rem;
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+.hub-card-action-btn:hover {
+    background: #4338CA;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+/* Difficulty Badges */
+.badge-diff-beginner { background: #ECFDF5; color: #059669; border: 1px solid #A7F3D0; }
+.badge-diff-easy { background: #EFF6FF; color: #2563EB; border: 1px solid #BFDBFE; }
+.badge-diff-medium { background: #FFFBEB; color: #D97706; border: 1px solid #FDE68A; }
+.badge-diff-hard { background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; }
+.badge-platform { background: rgba(15, 23, 42, 0.75); color: #FFFFFF; backdrop-filter: blur(4px); }
+
+/* KPI summary banner */
+.hub-kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.hub-kpi-card {
+    background: #FFFFFF;
+    border: 1px solid var(--border-subtle, #E2E8F0);
+    border-radius: 12px;
+    padding: 1.15rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+</style>
+
+<div class="coding-hub-wrap">
+
+  <!-- Header -->
+  <div class="coding-hub-header">
+    <div>
+      <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+        <span class="badge badge-active" style="font-weight: 700;">Student Resource Hub</span>
+        <span class="role-chip">{{ branch }} Engineering Practice</span>
+      </div>
+      <h1 class="coding-hub-title">Coding Resources & DSA Practice Hub</h1>
+      <p class="coding-hub-sub">Explore curated algorithmic challenges on industry platforms and run code directly in cloud compilers.</p>
+    </div>
+  </div>
+
+  <!-- KPI Strip -->
+  <div class="hub-kpi-strip">
+    <div class="hub-kpi-card">
+      <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Curated DSA Problems</div>
+      <div style="font-size: 1.75rem; font-weight: 800; color: var(--primary, #4F46E5); margin: 0.25rem 0;" data-countup data-countup-target="{{ total_dsa }}">
+        {{ total_dsa }}
+      </div>
+      <div style="font-size: 0.75rem; color: var(--text-muted);">Across 12 core algorithmic topics</div>
+    </div>
+    <div class="hub-kpi-card">
+      <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Online Compilers</div>
+      <div style="font-size: 1.75rem; font-weight: 800; color: #059669; margin: 0.25rem 0;" data-countup data-countup-target="{{ total_compilers }}">
+        {{ total_compilers }}
+      </div>
+      <div style="font-size: 0.75rem; color: var(--text-muted);">Instant runtimes for Python, Java, C</div>
+    </div>
+    <div class="hub-kpi-card">
+      <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Supported Platforms</div>
+      <div style="font-size: 1.75rem; font-weight: 800; color: #0284C7; margin: 0.25rem 0;">
+        5+ Portals
+      </div>
+      <div style="font-size: 0.75rem; color: var(--text-muted);">LeetCode, HackerRank, GFG & more</div>
+    </div>
+  </div>
+
+  <!-- Area Switching Tabs -->
+  <div class="hub-nav-tabs">
+    <button class="hub-nav-btn active" id="tabBtnDsa" type="button" onclick="switchHubArea('dsa')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+      Area A — DSA Questions & Topics ({{ dsa_resources|length }})
+    </button>
+    <button class="hub-nav-btn" id="tabBtnCompilers" type="button" onclick="switchHubArea('compilers')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+      Area B — Online Compilers & Interpreters ({{ compilers|length }})
+    </button>
+  </div>
+
+  <!-- AREA A: DSA QUESTIONS AND TOPICS -->
+  <div id="areaDsaSection">
+
+    <!-- Search & Filters -->
+    <div style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+      <!-- Search Form -->
+      <form method="GET" action="{% url 'student_coding' %}" style="display: flex; gap: 0.5rem; flex: 1; min-width: 260px;">
+        {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+        {% if selected_difficulty %}<input type="hidden" name="difficulty" value="{{ selected_difficulty }}">{% endif %}
+        <input type="text" name="q" value="{{ search_q }}" placeholder="Search DSA questions, topics, or platforms..." class="form-input" style="flex: 1; height: 38px;">
+        <button type="submit" class="btn small primary" style="height: 38px;">Search</button>
+        {% if search_q or selected_category or selected_difficulty %}
+        <a href="{% url 'student_coding' %}" class="btn small" style="height: 38px; display: inline-flex; align-items: center;">Clear</a>
+        {% endif %}
+      </form>
+
+      <!-- Difficulty Filter -->
+      <div style="display: flex; gap: 0.35rem; align-items: center;">
+        <span style="font-size: 0.775rem; font-weight: 700; color: var(--text-muted);">Difficulty:</span>
+        <a href="?{% if selected_category %}category={{ selected_category }}&{% endif %}{% if search_q %}q={{ search_q }}{% endif %}" class="badge {% if not selected_difficulty %}badge-active{% else %}badge-subtle{% endif %}" style="text-decoration: none;">All</a>
+        {% for diff in difficulties %}
+        <a href="?difficulty={{ diff }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search_q %}&q={{ search_q }}{% endif %}" class="badge {% if selected_difficulty == diff %}badge-active{% else %}badge-subtle{% endif %}" style="text-decoration: none;">{{ diff }}</a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Category Filter Chips -->
+    <div class="category-filter-strip">
+      <a href="?{% if selected_difficulty %}difficulty={{ selected_difficulty }}&{% endif %}{% if search_q %}q={{ search_q }}{% endif %}" class="category-chip-btn {% if not selected_category %}active{% endif %}">
+        All Categories
+      </a>
+      {% for cat in categories %}
+      <a href="?category={{ cat|urlencode }}{% if selected_difficulty %}&difficulty={{ selected_difficulty }}{% endif %}{% if search_q %}&q={{ search_q }}{% endif %}" class="category-chip-btn {% if selected_category == cat %}active{% endif %}">
+        {{ cat }}
+      </a>
+      {% endfor %}
+    </div>
+
+    <!-- Area A Cards Grid -->
+    <div class="resource-cards-grid">
+      {% for item in dsa_resources %}
+      <div class="hub-card">
+        <div class="hub-card-thumb-wrap">
+          <img src="{{ item.display_thumbnail }}" alt="{{ item.title }}" class="hub-card-thumb" onerror="this.onerror=null; this.src='/static/img/fallback-resource.svg';">
+          <div class="hub-card-badge-strip">
+            <span class="badge badge-platform">{{ item.platform_name|default:"External Portal" }}</span>
+            <span class="badge badge-diff-{{ item.difficulty|lower }}">{{ item.difficulty }}</span>
+          </div>
+        </div>
+        <div class="hub-card-body">
+          <div class="hub-card-category">{{ item.topic_category }}</div>
+          <h3 class="hub-card-title">{{ item.title }}</h3>
+          <p class="hub-card-desc">{{ item.description|default:"Practice this problem on the official external platform to master algorithmic concepts." }}</p>
+          <div class="hub-card-meta">
+            <span>💻 {{ item.supported_languages|default:"Python, Java, C++" }}</span>
+            <span>📅 {{ item.created_at|date:"M d, Y" }}</span>
+          </div>
+          <a href="{{ item.external_url }}" target="_blank" rel="noopener noreferrer" class="hub-card-action-btn">
+            {% if item.resource_type == 'dsa_topic' %}
+            Open Topic Guide ↗
+            {% else %}
+            Practice Question ↗
+            {% endif %}
+          </a>
+        </div>
+      </div>
+      {% empty %}
+      <div style="grid-column: 1 / -1; padding: 3rem; text-align: center; background: #FFFFFF; border: 1px dashed var(--border-subtle); border-radius: 12px;">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--text-muted); margin-bottom: 0.75rem;"><circle cx="12" cy="12" r="10"></circle><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+        <h4 style="margin: 0 0 0.5rem; color: var(--text-main);">No DSA Questions Found</h4>
+        <p style="margin: 0; color: var(--text-muted); font-size: 0.875rem;">Try resetting your filters or search keywords to view the complete catalog.</p>
+        <a href="{% url 'student_coding' %}" class="btn small primary" style="margin-top: 1rem; display: inline-block;">Reset Filters</a>
+      </div>
+      {% endfor %}
+    </div>
+
+  </div>
+
+  <!-- AREA B: ONLINE COMPILERS AND INTERPRETERS -->
+  <div id="areaCompilersSection" style="display: none;">
+
+    <div style="margin-bottom: 1.25rem;">
+      <h3 style="margin: 0 0 0.25rem; font-size: 1.25rem; font-weight: 800; color: var(--text-main);">Verified Online Compilers & Interpreters</h3>
+      <p style="margin: 0; color: var(--text-muted); font-size: 0.85rem;">Access official cloud compilers supporting Python, Java, C, and C++ with real-time I/O in a separate browser tab.</p>
+    </div>
+
+    <div class="resource-cards-grid">
+      {% for comp in compilers %}
+      <div class="hub-card">
+        <div class="hub-card-thumb-wrap">
+          <img src="{{ comp.display_thumbnail }}" alt="{{ comp.title }}" class="hub-card-thumb" onerror="this.onerror=null; this.src='/static/img/fallback-resource.svg';">
+          <div class="hub-card-badge-strip">
+            <span class="badge badge-platform">{{ comp.platform_name|default:"Cloud Runtime" }}</span>
+          </div>
+        </div>
+        <div class="hub-card-body">
+          <div class="hub-card-category">{{ comp.platform_name|default:"Online IDE" }}</div>
+          <h3 class="hub-card-title">{{ comp.title }}</h3>
+          <p class="hub-card-desc">{{ comp.description|default:"Interactive online runtime environment for rapid development, testing, and debugging." }}</p>
+          <div class="hub-card-meta">
+            <span>⚡ Supported: <strong>{{ comp.supported_languages }}</strong></span>
+            <span>🌐 Cloud-Hosted</span>
+          </div>
+          <a href="{{ comp.external_url }}" target="_blank" rel="noopener noreferrer" class="hub-card-action-btn" style="background: #059669;">
+            Open Compiler ↗
+          </a>
+        </div>
+      </div>
+      {% empty %}
+      <div style="grid-column: 1 / -1; padding: 3rem; text-align: center; background: #FFFFFF; border: 1px dashed var(--border-subtle); border-radius: 12px;">
+        <p style="margin: 0; color: var(--text-muted);">No online compiler resources listed at this moment.</p>
+      </div>
+      {% endfor %}
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+function switchHubArea(area) {
+  const dsaSection = document.getElementById('areaDsaSection');
+  const compilersSection = document.getElementById('areaCompilersSection');
+  const dsaBtn = document.getElementById('tabBtnDsa');
+  const compilersBtn = document.getElementById('tabBtnCompilers');
+
+  if (area === 'compilers') {
+    dsaSection.style.display = 'none';
+    compilersSection.style.display = 'block';
+    dsaBtn.classList.remove('active');
+    compilersBtn.classList.add('active');
+  } else {
+    dsaSection.style.display = 'block';
+    compilersSection.style.display = 'none';
+    dsaBtn.classList.add('active');
+    compilersBtn.classList.remove('active');
+  }
+}
+</script>
+{% endblock %}

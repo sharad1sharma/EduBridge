@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Engineering Scholarships | EduBridge{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="card-header-bar" style="margin-bottom: 1.25rem;">
+        <div>
+            <div class="admin-badge-pill" style="background: #ECFDF5; color: #059669;">Financial Opportunities</div>
+            <h1 style="margin: 0.25rem 0 0.25rem;">Verified B.Tech Scholarships & Grants</h1>
+            <p style="margin: 0; color: var(--text-muted);">Institutional, state, and corporate scholarships verified by platform administrators.</p>
+        </div>
+        <div>
+            <a href="{% url 'student_dashboard' %}" class="btn">← Back to Dashboard</a>
+        </div>
+    </div>
+
+    <!-- Security & Eligibility Notice -->
+    <div class="alert alert-info" style="margin-bottom: 1.5rem; background: #EFF6FF; border: 1px solid #BFDBFE; color: #1E40AF; padding: 0.85rem 1.15rem; border-radius: var(--radius-sm); font-size: 0.85rem;">
+        <strong>ℹ️ Official Source Verification:</strong>
+        EduBridge does not process or award grants directly. All deadlines, minimum CGPA requirements, and document checklists are sourced from official government and trust portals. Click the official portal links to apply.
+    </div>
+
+    <!-- Scholarship Cards Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+        {% for item in scholarships %}
+        <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; padding: 1.35rem; border-top: 4px solid {% if item.is_near %}#EF4444{% elif item.branch_match %}#10B981{% else %}#2563EB{% endif %};">
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                    <span class="badge {% if item.branch_match %}badge-active{% else %}badge-subtle{% endif %}">
+                        {% if item.branch_match %}Matches Your Branch ({{ student_branch }}){% else %}Open for All Branches{% endif %}
+                    </span>
+                    {% if item.is_near %}
+                    <span class="badge badge-alert">Deadline Approaching</span>
+                    {% endif %}
+                </div>
+
+                <h3 style="font-size: 1.1rem; color: var(--text-main); margin-bottom: 0.25rem; font-weight: 700;">{{ item.record.name }}</h3>
+                <div style="font-size: 0.825rem; color: #4338CA; font-weight: 600; margin-bottom: 0.75rem;">
+                    Official Provider: {{ item.record.provider }}
+                </div>
+
+                <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.45; margin-bottom: 1rem;">
+                    {{ item.record.description }}
+                </p>
+
+                <div style="background: #F8FAFC; padding: 0.75rem 0.85rem; border-radius: 6px; font-size: 0.8rem; border: 1px solid var(--border-subtle); margin-bottom: 1.2rem; display: flex; flex-direction: column; gap: 0.35rem;">
+                    <div><strong>Closing Deadline:</strong> <span class="mono">{{ item.record.deadline|date:"F d, Y" }}</span></div>
+                    <div><strong>Min. CGPA Criteria:</strong> {% if item.record.min_cgpa > 0 %}{{ item.record.min_cgpa }} CGPA{% else %}Merit & Income Based{% endif %}</div>
+                    <div><strong>Education Level:</strong> {{ item.record.education_level }}</div>
+                    {% if item.record.income_criteria %}
+                    <div><strong>Income Criteria:</strong> {{ item.record.income_criteria }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 0.5rem;">
+                <a href="{{ item.record.official_application_url }}" target="_blank" class="btn primary small" style="flex: 1; text-align: center;">Apply on Official Portal ↗</a>
+                <a href="{{ item.record.official_source_url }}" target="_blank" class="btn small" style="text-align: center;">Source ↗</a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="card text-center text-muted" style="grid-column: 1 / -1; padding: 3rem;">
+            <h3>No active scholarships listed</h3>
+            <p>Platform administrators update scholarship opportunities regularly. Check back soon.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

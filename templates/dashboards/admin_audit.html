@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Audit log{% endblock %}
+{% block content %}
+
+<div class="card-header-bar" style="margin-bottom: 1.25rem;">
+  <div>
+    <h1 style="margin-bottom: 0.25rem;">Security & administration audit log</h1>
+    <p style="margin: 0; color: var(--text-muted);">Immutable audit trail tracking authentications, authorization checks, and account lifecycle events</p>
+  </div>
+</div>
+
+<form method="get" class="filters">
+  <div class="field">
+    <label for="action">Filter by event type</label>
+    <select id="action" name="action">
+      <option value="">All events</option>
+      {% for a in actions %}
+        <option value="{{ a }}"{% if a == action %} selected{% endif %}>{{ a }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <button class="btn primary" type="submit">Apply filter</button>
+</form>
+
+{% if page.object_list %}
+<div class="table-wrap">
+<table>
+  <caption class="sr">Recent security and administration events</caption>
+  <thead>
+    <tr>
+      <th scope="col">Timestamp</th>
+      <th scope="col">Event Action</th>
+      <th scope="col">Actor</th>
+      <th scope="col">Target Subject</th>
+      <th scope="col">Client IP</th>
+      <th scope="col">Audit Details</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for e in page.object_list %}
+    <tr>
+      <td class="mono" style="font-size: 0.8rem; white-space: nowrap;">{{ e.created_at|date:"d M Y, H:i:s" }}</td>
+      <td>
+        <span class="badge {% if 'denied' in e.action or 'suspended' in e.action %}badge-alert{% elif 'created' in e.action or 'login' in e.action %}badge-active{% else %}badge-pending{% endif %}">
+          {{ e.action }}
+        </span>
+      </td>
+      <td class="mono"><strong>{{ e.actor_label|default:"—" }}</strong></td>
+      <td>
+        {% if e.target_type %}
+          <span class="role-chip" style="font-size: 0.7rem;">{{ e.target_type }} #{{ e.target_id }}</span>
+        {% else %}
+          <span style="color: var(--text-muted);">—</span>
+        {% endif %}
+      </td>
+      <td class="mono" style="font-size: 0.8rem;">{{ e.ip_address|default:"—" }}</td>
+      <td style="font-size: 0.85rem;">{{ e.detail|default:"—" }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% include "partials/pagination.html" %}
+{% else %}
+<p class="empty" style="padding: 2rem; text-align: center; background: #FFFFFF; border-radius: var(--radius-lg); border: 1px dashed var(--border-strong);">No events recorded yet.</p>
+{% endif %}
+
+{% endblock %}

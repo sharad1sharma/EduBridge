@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% block title %}Student {{ student.public_id }} · Administration{% endblock %}
+{% block content %}
+
+<div class="card-header-bar" style="margin-bottom: 1.25rem;">
+  <div>
+    <h1 style="margin-bottom: 0.25rem;">{{ student.full_name }} (<span class="mono">{{ student.public_id }}</span>)</h1>
+    <p style="margin: 0; color: var(--text-muted);">Academic Profile · Semester {{ profile.semester }} · {{ profile.get_branch_display }}</p>
+  </div>
+  <div style="display: flex; gap: 0.5rem;">
+    <a class="btn" href="{% url 'admin_students' %}">← Back to Students</a>
+  </div>
+</div>
+
+<div class="dashboard-columns-2">
+  <!-- Left Column: Academic Profile & Assessment Attempts -->
+  <div style="display: flex; flex-direction: column; gap: 1.35rem;">
+
+    <!-- Academic Record Card -->
+    <section class="card">
+      <div class="card-header-bar">
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path></svg>
+          Academic & Personal Profile
+        </h2>
+        <span class="badge {% if student.is_active %}badge-active{% else %}badge-alert{% endif %}">
+          {% if student.is_active %}Active Account{% else %}Suspended{% endif %}
+        </span>
+      </div>
+
+      <dl class="titleblock" style="grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); margin-bottom: 1.25rem;">
+        <div>
+          <dt>Student ID</dt>
+          <dd class="mono">{{ student.public_id }}</dd>
+        </div>
+        <div>
+          <dt>Branch</dt>
+          <dd>{{ profile.get_branch_display }}</dd>
+        </div>
+        <div>
+          <dt>Semester</dt>
+          <dd>Sem {{ profile.semester }}</dd>
+        </div>
+        <div>
+          <dt>Profile Status</dt>
+          <dd>{{ percent }}% Complete</dd>
+        </div>
+      </dl>
+
+      <!-- Edit Form -->
+      <form method="post" style="border-top: 1px solid var(--border-subtle); padding-top: 1.25rem;">{% csrf_token %}
+        <input type="hidden" name="action" value="edit_profile">
+        <h4 style="margin: 0 0 1rem; font-size: 0.95rem;">Edit Permitted Records</h4>
+        
+        <div class="form-grid">
+          <div class="field">
+            <label for="full_name">Full Name</label>
+            <input id="full_name" name="full_name" value="{{ student.full_name }}" required>
+          </div>
+          <div class="field">
+            <label for="phone">Phone Number</label>
+            <input id="phone" name="phone" value="{{ profile.phone|default:'' }}" placeholder="+91 98765 43210">
+          </div>
+          <div class="field">
+            <label for="branch">B.Tech Branch</label>
+            <select id="branch" name="branch">
+              {% for b in branches %}
+                <option value="{{ b.code }}"{% if b.code == profile.branch %} selected{% endif %}>{{ b.code }} - {{ b.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label for="semester">Current Semester</label>
+            <select id="semester" name="semester">
+              {% for s in "12345678" %}
+                <option value="{{ s }}"{% if s == profile.semester|stringformat:"s" %} selected{% endif %}>Semester {{ s }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="academic_details">Academic Notes & Section Details</label>
+          <textarea id="academic_details" name="academic_details" rows="2">{{ profile.academic_details|default:'' }}</textarea>
+        </div>
+
+        <button class="btn primary" type="submit">Save Student Changes</button>
+      </form>
+    </section>
+
+    <!-- Assessment History & MCQ Performance -->
+    <section class="card">
+      <div class="card-header-bar">
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+          Assessment & Quiz Performance Records
+        </h2>
+        <span class="badge badge-active">{{ attempts.count }} Submissions</span>
+      </div>
+
+      {% if attempts %}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Assessment Title</th>
+              <th scope="col">Type</th>
+              <th scope="col">Score</th>
+              <th scope="col">Status</th>
+              <th scope="col">Submitted At</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for a in attempts %}
+            <tr>
+              <td><strong>{{ a.assessment.title }}</strong></td>
+              <td><span class="role-chip">{{ a.assessment.get_assessment_type_display }}</span></td>
+              <td>
+                <strong>{{ a.score }}</strong> / {{ a.assessment.total_marks }}
+              </td>
+              <td>
+                <span class="badge {% if a.status == 'completed' %}badge-active{% else %}badge-pending{% endif %}">
+                  {{ a.get_status_display }}
+                </span>
+              </td>
+              <td class="mono" style="font-size: 0.8rem;">
+                {{ a.submitted_at|date:"d M Y, H:i"|default:"In Progress" }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="empty">No assessment attempts recorded for this student yet.</p>
+      {% endif %}
+    </section>
+
+  </div>
+
+  <!-- Right Column: Account Status, Coding Profiles, and Deliberate Deletion -->
+  <div style="display: flex; flex-direction: column; gap: 1.35rem;">
+
+    <!-- Account Lifecycle & Suspension -->
+    <section class="card">
+      <div class="card-header-bar">
+        <h2>Security & Account Status</h2>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-secondary);">
+        Suspended students immediately lose active session cookies and cannot sign in until reactivated.
+      </p>
+      <form method="post" action="{% url 'admin_user_status' student.pk %}">{% csrf_token %}
+        {% if student.is_active %}
+          <input type="hidden" name="action" value="suspend">
+          <div class="field">
+            <label for="reason">Reason for Suspension</label>
+            <input id="reason" name="reason" placeholder="e.g. Disciplinary review, fee hold">
+          </div>
+          <button class="btn danger" type="submit" style="width: 100%;">Suspend Student Account</button>
+        {% else %}
+          <input type="hidden" name="action" value="reactivate">
+          <button class="btn primary" type="submit" style="width: 100%;">Reactivate Student Account</button>
+        {% endif %}
+      </form>
+    </section>
+
+    <!-- Verified Coding & Personal Profiles -->
+    <section class="card">
+      <div class="card-header-bar">
+        <h2>Coding & Portfolio Links</h2>
+      </div>
+      <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.85rem;">
+        <li>🐙 <strong>GitHub:</strong> {% if profile.github_url %}<a href="{{ profile.github_url }}" target="_blank" rel="noopener">{{ profile.github_url }}</a>{% else %}<span style="color:var(--text-muted);">Not provided</span>{% endif %}</li>
+        <li>💼 <strong>LinkedIn:</strong> {% if profile.linkedin_url %}<a href="{{ profile.linkedin_url }}" target="_blank" rel="noopener">{{ profile.linkedin_url }}</a>{% else %}<span style="color:var(--text-muted);">Not provided</span>{% endif %}</li>
+        <li>💻 <strong>LeetCode:</strong> {% if profile.leetcode_username %}<span class="mono">{{ profile.leetcode_username }}</span>{% else %}<span style="color:var(--text-muted);">Not provided</span>{% endif %}</li>
+        <li>🌐 <strong>Portfolio:</strong> {% if profile.portfolio_url %}<a href="{{ profile.portfolio_url }}" target="_blank" rel="noopener">{{ profile.portfolio_url }}</a>{% else %}<span style="color:var(--text-muted);">Not provided</span>{% endif %}</li>
+      </ul>
+    </section>
+
+    <!-- Deliberate Deletion Workflow (Retention Policy) -->
+    <section class="card" style="border: 1px solid #FECACA; background: #FFF5F5;">
+      <div class="card-header-bar">
+        <h2 style="color: #DC2626;">Danger Zone · Delete Account</h2>
+      </div>
+      <p style="font-size: 0.8rem; color: #991B1B; margin-bottom: 0.75rem;">
+        ⚠️ <strong>Institutional Retention Policy:</strong> Deleting a student removes their account credentials and assessment submissions permanently. Prefer <em>Suspension</em> for reversible hold.
+      </p>
+      <form method="post" onsubmit="return confirm('Are you completely sure you want to permanently delete this student record?');">{% csrf_token %}
+        <input type="hidden" name="action" value="delete_account">
+        <div class="field">
+          <label for="confirm_student_id" style="font-size: 0.8rem; color: #991B1B;">Type <strong>{{ student.public_id }}</strong> to confirm deletion</label>
+          <input id="confirm_student_id" name="confirm_student_id" placeholder="{{ student.public_id }}" required style="border-color: #F87171;">
+        </div>
+        <button class="btn danger" type="submit" style="width: 100%;">Permanently Delete Student</button>
+      </form>
+    </section>
+
+  </div>
+</div>
+
+{% endblock %}

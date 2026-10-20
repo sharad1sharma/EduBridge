@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Welcome to EduBridge{% endblock %}
+{% block content %}
+
+<!-- Hero Section (EduNest / Alltio Modern EdTech Aesthetic) -->
+<section style="text-align: center; max-width: 52rem; margin: 2rem auto 3.5rem;">
+  <span class="badge badge-active" style="padding: 0.35rem 0.85rem; font-size: 0.8rem; margin-bottom: 1rem;">
+    🚀 The Next-Gen B.Tech Academic Suite
+  </span>
+  <h1 style="font-size: clamp(2rem, 3.5vw + 1rem, 3.25rem); font-weight: 800; line-height: 1.15; letter-spacing: -0.03em; margin: 0.5rem 0 1.25rem; justify-content: center;">
+    Coursework, tests & scholarships, in one place for B.Tech.
+  </h1>
+  <p style="font-size: 1.15rem; color: var(--text-secondary); max-width: 42rem; margin: 0 auto 2rem; line-height: 1.6;">
+    Students, teachers and administrators each get their own dedicated workspace, with role-based access control safeguarding data privacy and institutional integrity.
+  </p>
+  <div class="actions" style="justify-content: center; gap: 1rem; margin-bottom: 1.5rem;">
+    <a class="btn primary" href="{% url 'accounts:signup' %}" style="padding: 0.75rem 1.75rem; font-size: 1rem;">
+      Create a student account
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+    </a>
+    <a class="btn" href="{% url 'accounts:login' %}" style="padding: 0.75rem 1.75rem; font-size: 1rem;">
+      Sign in to portal
+    </a>
+  </div>
+  <p class="hint" style="font-size: 0.85rem; color: var(--text-muted);">
+    🔒 Teacher accounts are created by an administrator. There is no public teacher or administrator sign-up.
+  </p>
+</section>
+
+<!-- 3 Role Portals Feature Showcase Cards -->
+<div class="grid wide" style="margin-bottom: 2.5rem;">
+  <!-- Student Workspace Card (EduNest Style) -->
+  <div class="card" style="border-top: 4px solid #3B82F6;">
+    <div class="icon-bubble blue" style="margin-bottom: 1rem;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+    </div>
+    <h3 style="font-size: 1.15rem; font-weight: 700; margin: 0 0 0.5rem; color: var(--text-main);">Student Workspace (EduNest)</h3>
+    <p style="font-size: 0.875rem; color: var(--text-secondary); flex: 1;">
+      Track course schedules, lab tutorials, assignment deadlines, personalized performance metrics, and consult with the AI Study Buddy.
+    </p>
+    <div style="margin-top: 1rem;">
+      <span class="badge badge-active">Active Self-Signup</span>
+    </div>
+  </div>
+
+  <!-- Teacher Workspace Card (Alltio Style) -->
+  <div class="card" style="border-top: 4px solid #6366F1;">
+    <div class="icon-bubble purple" style="margin-bottom: 1rem;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+    </div>
+    <h3 style="font-size: 1.15rem; font-weight: 700; margin: 0 0 0.5rem; color: var(--text-main);">Teacher Portal (Alltio)</h3>
+    <p style="font-size: 0.875rem; color: var(--text-secondary); flex: 1;">
+      High-density assignment matrices, batch attendance rings, lecture material distribution, and intelligent AI rubric assistance.
+    </p>
+    <div style="margin-top: 1rem;">
+      <span class="badge badge-pending">Admin Provisioned</span>
+    </div>
+  </div>
+
+  <!-- Admin Console Card -->
+  <div class="card" style="border-top: 4px solid #0F172A;">
+    <div class="icon-bubble green" style="margin-bottom: 1rem;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+    </div>
+    <h3 style="font-size: 1.15rem; font-weight: 700; margin: 0 0 0.5rem; color: var(--text-main);">Administrative Control</h3>
+    <p style="font-size: 0.875rem; color: var(--text-secondary); flex: 1;">
+      Institutional directory supervision, teacher provisioning, real-time security audit trails, and instant account suspension.
+    </p>
+    <div style="margin-top: 1rem;">
+      <span class="badge" style="background: #F1F5F9; color: #475569;">Supervised Access</span>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

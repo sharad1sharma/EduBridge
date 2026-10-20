@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% block title %}Faculty {{ teacher.public_id }} · Administration{% endblock %}
+{% block content %}
+
+<div class="card-header-bar" style="margin-bottom: 1.25rem;">
+  <div>
+    <h1 style="margin-bottom: 0.25rem;">{{ teacher.full_name }} (<span class="mono">{{ teacher.public_id }}</span>)</h1>
+    <p style="margin: 0; color: var(--text-muted);">Faculty Profile · Department of {{ profile.get_department_display|default:"Engineering" }} · {{ profile.designation|default:"Faculty" }}</p>
+  </div>
+  <div style="display: flex; gap: 0.5rem;">
+    <a class="btn" href="{% url 'admin_teachers' %}">← Back to Faculty</a>
+  </div>
+</div>
+
+<div class="dashboard-columns-2">
+  <!-- Left Column: Assigned Subjects, Assessments, Resources, Meetings -->
+  <div style="display: flex; flex-direction: column; gap: 1.35rem;">
+
+    <!-- Professional Profile & Edit Form -->
+    <section class="card">
+      <div class="card-header-bar">
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          Professional Record & Profile
+        </h2>
+        <span class="badge {% if teacher.is_active %}badge-active{% else %}badge-alert{% endif %}">
+          {% if teacher.is_active %}Active Faculty{% else %}Suspended{% endif %}
+        </span>
+      </div>
+
+      <dl class="titleblock" style="grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); margin-bottom: 1.25rem;">
+        <div>
+          <dt>Teacher ID</dt>
+          <dd class="mono" style="color: #6366F1;">{{ teacher.public_id }}</dd>
+        </div>
+        <div>
+          <dt>Department</dt>
+          <dd>{{ profile.get_department_display|default:"Unassigned" }}</dd>
+        </div>
+        <div>
+          <dt>Designation</dt>
+          <dd>{{ profile.designation|default:"Faculty" }}</dd>
+        </div>
+        <div>
+          <dt>Profile Status</dt>
+          <dd>{{ percent }}% Complete</dd>
+        </div>
+      </dl>
+
+      <!-- Edit Form -->
+      <form method="post" style="border-top: 1px solid var(--border-subtle); padding-top: 1.25rem;">{% csrf_token %}
+        <input type="hidden" name="action" value="edit_profile">
+        <h4 style="margin: 0 0 1rem; font-size: 0.95rem;">Edit Faculty Details</h4>
+        
+        <div class="form-grid">
+          <div class="field">
+            <label for="full_name">Full Name</label>
+            <input id="full_name" name="full_name" value="{{ teacher.full_name }}" required>
+          </div>
+          <div class="field">
+            <label for="department">Department</label>
+            <select id="department" name="department">
+              {% for b in branches %}
+                <option value="{{ b.code }}"{% if b.code == profile.department %} selected{% endif %}>{{ b.code }} - {{ b.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label for="designation">Designation</label>
+            <input id="designation" name="designation" value="{{ profile.designation|default:'' }}" placeholder="e.g. Professor, Assistant Professor">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="bio">Faculty Bio / Research Interests</label>
+          <textarea id="bio" name="bio" rows="2">{{ profile.bio|default:'' }}</textarea>
+        </div>
+
+        <button class="btn primary" type="submit">Save Faculty Record</button>
+      </form>
+    </section>
+
+    <!-- Assigned Subjects -->
+    <section class="card">
+      <div class="card-header-bar">
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+          Assigned Teaching Courses
+        </h2>
+        <span class="badge badge-active">{{ assigned_subjects.count }} Courses</span>
+      </div>
+
+      {% if assigned_subjects %}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Code</th>
+              <th scope="col">Subject Title</th>
+              <th scope="col">Branch</th>
+              <th scope="col">Semester</th>
+              <th scope="col">Credits</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in assigned_subjects %}
+            <tr>
+              <td class="mono"><strong>{{ s.code }}</strong></td>
+              <td>{{ s.title }}</td>
+              <td><span class="role-chip">{{ s.branch }}</span></td>
+              <td>Sem {{ s.semester }}</td>
+              <td>{{ s.credits }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="empty">No courses assigned to this faculty member yet.</p>
+      {% endif %}
+    </section>
+
+    <!-- Authored Resources & Meetings -->
+    <section class="card">
+      <div class="card-header-bar">
+        <h2>Learning Resources & Scheduled Meetings</h2>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div>
+          <h4>Authored Resources ({{ resources.count }})</h4>
+          {% if resources %}
+          <ul style="padding-left: 1.1rem; margin: 0.35rem 0; font-size: 0.85rem;">
+            {% for r in resources %}<li><strong>{{ r.title }}</strong> ({{ r.get_resource_type_display }})</li>{% endfor %}
+          </ul>
+          {% else %}
+          <p class="empty" style="font-size: 0.8rem;">No resources uploaded.</p>
+          {% endif %}
+        </div>
+        <div>
+          <h4>Scheduled Meetings ({{ meetings.count }})</h4>
+          {% if meetings %}
+          <ul style="padding-left: 1.1rem; margin: 0.35rem 0; font-size: 0.85rem;">
+            {% for m in meetings %}<li><strong>{{ m.title }}</strong><br><small class="mono">{{ m.scheduled_at|date:"d M, H:i" }}</small></li>{% endfor %}
+          </ul>
+          {% else %}
+          <p class="empty" style="font-size: 0.8rem;">No meetings scheduled.</p>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Right Column: Status & Deletion -->
+  <div style="display: flex; flex-direction: column; gap: 1.35rem;">
+
+    <!-- Account Suspension / Reactivation -->
+    <section class="card">
+      <div class="card-header-bar">
+        <h2>Faculty Security & Access</h2>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-secondary);">
+        Suspension revokes active sessions immediately. Reactivation restores platform login access.
+      </p>
+      <form method="post" action="{% url 'admin_user_status' teacher.pk %}">{% csrf_token %}
+        {% if teacher.is_active %}
+          <input type="hidden" name="action" value="suspend">
+          <div class="field">
+            <label for="reason">Reason for Suspension</label>
+            <input id="reason" name="reason" placeholder="e.g. Sabbatical, credential review">
+          </div>
+          <button class="btn danger" type="submit" style="width: 100%;">Suspend Faculty Account</button>
+        {% else %}
+          <input type="hidden" name="action" value="reactivate">
+          <button class="btn primary" type="submit" style="width: 100%;">Reactivate Faculty Account</button>
+        {% endif %}
+      </form>
+    </section>
+
+    <!-- Deliberate Deletion Workflow -->
+    <section class="card" style="border: 1px solid #FECACA; background: #FFF5F5;">
+      <div class="card-header-bar">
+        <h2 style="color: #DC2626;">Danger Zone · Delete Faculty</h2>
+      </div>
+      <p style="font-size: 0.8rem; color: #991B1B; margin-bottom: 0.75rem;">
+        ⚠️ <strong>Retention Warning:</strong> Deleting a faculty account removes their credentials and reassigns educational records. Type the teacher ID to confirm.
+      </p>
+      <form method="post" onsubmit="return confirm('Are you completely sure you want to delete this faculty account?');">{% csrf_token %}
+        <input type="hidden" name="action" value="delete_account">
+        <div class="field">
+          <label for="confirm_teacher_id" style="font-size: 0.8rem; color: #991B1B;">Type <strong>{{ teacher.public_id }}</strong> to confirm</label>
+          <input id="confirm_teacher_id" name="confirm_teacher_id" placeholder="{{ teacher.public_id }}" required style="border-color: #F87171;">
+        </div>
+        <button class="btn danger" type="submit" style="width: 100%;">Permanently Delete Faculty Account</button>
+      </form>
+    </section>
+
+  </div>
+</div>
+
+{% endblock %}

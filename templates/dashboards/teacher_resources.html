@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Course Materials & Resources | Faculty Portal{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="card-header-bar" style="margin-bottom: 1.25rem;">
+        <div>
+            <div class="admin-badge-pill" style="background: #EEF2FF; color: #6366F1;">Faculty Hub</div>
+            <h1 style="margin: 0.25rem 0 0.25rem;">Educational Materials & Resource Management</h1>
+            <p style="margin: 0; color: var(--text-muted);">Publish lecture notes, lab manuals, and YouTube video lecture links for your students.</p>
+        </div>
+        <div>
+            <a href="{% url 'teacher_dashboard' %}" class="btn">← Back to Dashboard</a>
+        </div>
+    </div>
+
+    <div class="grid grid-2" style="margin-bottom: 2rem;">
+        <!-- Publish New Resource Form -->
+        <div class="card" style="padding: 1.5rem;">
+            <div class="card-header-bar" style="margin-bottom: 1rem;">
+                <h2>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"></path></svg>
+                    Publish Course Material
+                </h2>
+            </div>
+
+            <form method="POST" action="{% url 'teacher_resources' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_resource">
+
+                <div style="margin-bottom: 1rem;">
+                    <label for="title" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Resource Title</label>
+                    <input type="text" name="title" id="title" class="form-input" placeholder="e.g. Lecture 12: AVL Trees & Balance Factors" required>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div>
+                        <label for="branch" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Cohort Branch</label>
+                        <select name="branch" id="branch" class="form-select">
+                            {% for b in branches %}
+                            <option value="{{ b.code }}">{{ b.code }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="semester" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Semester</label>
+                        <select name="semester" id="semester" class="form-select">
+                            {% for sem in "12345678" %}
+                            <option value="{{ sem }}" {% if sem == "3" %}selected{% endif %}>Semester {{ sem }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div>
+                        <label for="subject_id" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Subject</label>
+                        <select name="subject_id" id="subject_id" class="form-select">
+                            <option value="">Core Department Course</option>
+                            {% for s in subjects %}
+                            <option value="{{ s.id }}">{{ s.code }} - {{ s.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="resource_type" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Type</label>
+                        <select name="resource_type" id="resource_type" class="form-select">
+                            <option value="pdf">PDF Document / Notes</option>
+                            <option value="notes">Handwritten / Typed Lecture Notes</option>
+                            <option value="lab_manual">Lab Manual</option>
+                            <option value="video">Educational Video Link</option>
+                            <option value="code">Code Archive / Exercise</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div>
+                        <label for="external_url" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Access URL (Drive / YouTube / Portal)</label>
+                        <input type="url" name="external_url" id="external_url" class="form-input" placeholder="https://...">
+                    </div>
+                    <div>
+                        <label for="file" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Or Upload File (PDF / Slides)</label>
+                        <input type="file" name="file" id="file" class="form-input" style="padding: 0.4rem 0.6rem;">
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1.25rem;">
+                    <label for="description" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Module Description</label>
+                    <textarea name="description" id="description" rows="2" class="form-input" placeholder="Prerequisites and topics..."></textarea>
+                </div>
+
+                <button type="submit" class="btn primary" style="width: 100%;">
+                    Upload & Dispatch Student Notifications ↗
+                </button>
+            </form>
+        </div>
+
+        <!-- Authored Resources List -->
+        <div class="card" style="padding: 1.5rem;">
+            <div class="card-header-bar" style="margin-bottom: 1rem;">
+                <h2>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                    Authored Resources ({{ resources|length }})
+                </h2>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                {% for r in resources %}
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.85rem; border-radius: 8px; background: #F8FAFC; border: 1px solid var(--border-subtle);">
+                    <div>
+                        <strong style="font-size: 0.9rem; color: var(--text-main);">{{ r.title }}</strong>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">{{ r.branch }} Sem {{ r.semester }} · {{ r.get_resource_type_display }}</div>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <a href="{% if r.external_url %}{{ r.external_url }}{% elif r.file %}{{ r.file.url }}{% else %}#{% endif %}" target="_blank" class="btn small">View</a>
+                        <form method="POST" action="{% url 'teacher_resources' %}" style="display: inline-block;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete_resource">
+                            <input type="hidden" name="resource_id" value="{{ r.id }}">
+                            <button type="submit" class="btn small alert" onclick="return confirm('Delete resource {{ r.title }}?');">Delete</button>
+                        </form>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted p-2" style="font-size: 0.85rem;">No authored resources yet. Fill out the form to publish your first study guide.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

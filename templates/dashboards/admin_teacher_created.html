@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Teacher account created{% endblock %}
+{% block content %}
+<section class="card" style="max-width: 36rem; margin: 0 auto;">
+  <div class="card-header-bar">
+    <div>
+      <h1 style="margin-bottom: 0.25rem;">Teacher account created ✨</h1>
+      <p style="margin: 0; color: var(--text-muted);">The faculty account has been provisioned successfully</p>
+    </div>
+  </div>
+
+  <dl class="titleblock" style="margin-top: 1rem;">
+    <div>
+      <dt>Teacher ID</dt>
+      <dd class="mono">{{ teacher.public_id }}</dd>
+    </div>
+    <div>
+      <dt>Username</dt>
+      <dd>{{ teacher.username }}</dd>
+    </div>
+  </dl>
+
+  <div style="background: #F8FAFC; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.25rem; margin: 1.25rem 0;">
+    <p style="margin: 0 0 0.5rem; font-weight: 600; font-size: 0.85rem; color: var(--text-secondary);">One-time temporary password:</p>
+    <p style="margin: 0;"><code class="secret">{{ temp_password }}</code></p>
+  </div>
+
+  <p class="notice warn">
+    ⚠️ <strong>Action Required:</strong> Copy this password now and transmit it securely to the faculty member. It is hashed immediately and cannot be retrieved again. If lost, the teacher can utilize the password reset workflow on the sign-in screen.
+  </p>
+
+  <p style="margin-top: 1.5rem;">
+    <a class="btn primary" href="{% url 'admin_users' %}">Return to accounts directory</a>
+  </p>
+</section>
+{% endblock %}

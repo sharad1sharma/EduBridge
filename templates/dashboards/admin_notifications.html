@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Notification Monitoring | EduBridge Administration{% endblock %}
+
+{% block content %}
+<div class="page-container admin-workspace">
+    <div class="admin-header-flex">
+        <div>
+            <div class="admin-badge-pill">Communications & Alerts</div>
+            <h1 class="admin-main-title">Notification Delivery Monitoring</h1>
+            <p class="admin-subtext">Track system dispatch status, delivery failures, and retry communication events across the platform.</p>
+        </div>
+        <div class="admin-actions-bar">
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">← Back to Overview</a>
+        </div>
+    </div>
+
+    <!-- Notification Filters -->
+    <div class="dashboard-card mb-4">
+        <form method="GET" class="filter-form-grid">
+            <div class="form-group">
+                <label for="status" class="form-label">Delivery Status</label>
+                <select name="status" id="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="delivered" {% if status == 'delivered' %}selected{% endif %}>Delivered / Sent</option>
+                    <option value="pending" {% if status == 'pending' %}selected{% endif %}>Pending Dispatch</option>
+                    <option value="failed" {% if status == 'failed' %}selected{% endif %}>Failed</option>
+                </select>
+            </div>
+            <div class="form-group filter-actions">
+                <button type="submit" class="btn btn-primary">Filter</button>
+                <a href="{% url 'admin_notifications' %}" class="btn btn-secondary">Reset</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Notifications Table -->
+    <div class="dashboard-card">
+        <div class="card-header-flex">
+            <div>
+                <h3 class="card-title">Dispatched Notification Log</h3>
+                <p class="card-subtitle">Showing page {{ page.number }} of {{ page.paginator.num_pages }} ({{ page.paginator.count }} total notifications).</p>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="admin-data-table">
+                <thead>
+                    <tr>
+                        <th>Recipient</th>
+                        <th>Event Type</th>
+                        <th>Title & Message</th>
+                        <th>Created At</th>
+                        <th>Read Status</th>
+                        <th>Delivery Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for notif in page %}
+                    <tr>
+                        <td>
+                            <strong>{{ notif.recipient.username }}</strong>
+                            <div class="text-muted small">{{ notif.recipient.email|default:"No email recorded" }}</div>
+                            <span class="badge badge-subtle">{{ notif.recipient.role }}</span>
+                        </td>
+                        <td>
+                            <span class="badge badge-info">{{ notif.event_type|upper }}</span>
+                        </td>
+                        <td class="cell-wrap" style="max-width: 320px;">
+                            <div class="fw-semibold">{{ notif.title }}</div>
+                            <div class="text-muted small">{{ notif.message|truncatechars:100 }}</div>
+                            {% if notif.error_message %}
+                            <div class="text-danger small mt-1">⚠️ {{ notif.error_message }}</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div>{{ notif.created_at|date:"M d, Y" }}</div>
+                            <div class="text-muted small">{{ notif.created_at|date:"H:i" }}</div>
+                        </td>
+                        <td>
+                            {% if notif.is_read %}
+                            <span class="badge badge-success">Read ({{ notif.read_at|date:"M d" }})</span>
+                            {% else %}
+                            <span class="badge badge-secondary">Unread</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if notif.delivery_status == 'delivered' %}
+                            <span class="badge badge-success">Delivered</span>
+                            {% elif notif.delivery_status == 'pending' %}
+                            <span class="badge badge-warning">Pending</span>
+                            {% else %}
+                            <span class="badge badge-danger">Failed</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if notif.delivery_status == 'failed' %}
+                            <form method="POST" action="{% url 'admin_notifications' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="retry_notification">
+                                <input type="hidden" name="notification_id" value="{{ notif.id }}">
+                                <button type="submit" class="btn btn-sm btn-outline-primary">Retry Send</button>
+                            </form>
+                            {% else %}
+                            <span class="text-muted small">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <div class="empty-state">
+                                <div class="empty-icon">🔔</div>
+                                <h4>No notifications found</h4>
+                                <p class="text-muted">No notifications matching the selected filter criteria were found in the database.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if page.has_other_pages %}
+        <div class="pagination-container mt-4">
+            <div class="pagination">
+                {% if page.has_previous %}
+                <a href="?page={{ page.previous_page_number }}{% if status %}&status={{ status }}{% endif %}" class="page-link">← Previous</a>
+                {% endif %}
+                <span class="page-current">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+                {% if page.has_next %}
+                <a href="?page={{ page.next_page_number }}{% if status %}&status={{ status }}{% endif %}" class="page-link">Next →</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

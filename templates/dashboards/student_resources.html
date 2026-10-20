@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Learning Resources | EduBridge{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="card-header-bar" style="margin-bottom: 1.25rem;">
+        <div>
+            <div class="admin-badge-pill" style="background: #EFF6FF; color: #2563EB;">Digital Library</div>
+            <h1 style="margin: 0.25rem 0 0.25rem;">Engineering Study Resources & Notes</h1>
+            <p style="margin: 0; color: var(--text-muted);">Verified course notes, lab manuals, and video lectures curated by engineering professors.</p>
+        </div>
+        <div>
+            <a href="{% url 'student_dashboard' %}" class="btn">← Back to Dashboard</a>
+        </div>
+    </div>
+
+    <!-- Search & Filter Bar -->
+    <div class="card" style="margin-bottom: 1.5rem; padding: 1.25rem;">
+        <form method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) 100px; gap: 0.85rem; align-items: end;">
+            <div>
+                <label for="q" style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.35rem;">Search Title / Topic</label>
+                <input type="text" name="q" id="q" value="{{ q }}" placeholder="e.g. Graph Algorithms, Paging..." class="form-input">
+            </div>
+            <div>
+                <label for="branch" style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.35rem;">B.Tech Branch</label>
+                <select name="branch" id="branch" class="form-select">
+                    <option value="">All Branches</option>
+                    {% for b in branches %}
+                    <option value="{{ b.code }}" {% if branch == b.code %}selected{% endif %}>{{ b.code }} - {{ b.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="type" style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.35rem;">Resource Type</label>
+                <select name="type" id="type" class="form-select">
+                    <option value="">All Types</option>
+                    <option value="pdf" {% if type == 'pdf' %}selected{% endif %}>PDF Document</option>
+                    <option value="notes" {% if type == 'notes' %}selected{% endif %}>Lecture Notes</option>
+                    <option value="lab_manual" {% if type == 'lab_manual' %}selected{% endif %}>Lab Manual</option>
+                    <option value="video" {% if type == 'video' %}selected{% endif %}>Educational Video</option>
+                    <option value="code" {% if type == 'code' %}selected{% endif %}>Code Archive</option>
+                </select>
+            </div>
+            <div>
+                <button type="submit" class="btn primary" style="width: 100%;">Filter</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Resources Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+        {% for r in page %}
+        <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; padding: 0; overflow: hidden; border-radius: 12px;">
+            <div style="width: 100%; height: 160px; background: #F1F5F9; position: relative; overflow: hidden;">
+                <img src="{{ r.display_thumbnail }}" alt="{{ r.title }}" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.onerror=null; this.src='/static/img/fallback-resource.svg';">
+                <span class="badge badge-info" style="position: absolute; top: 10px; left: 10px;">{{ r.branch }} Sem {{ r.semester }}</span>
+                <span class="badge badge-subtle" style="position: absolute; top: 10px; right: 10px;">{{ r.get_resource_type_display }}</span>
+            </div>
+            <div style="padding: 1.25rem; display: flex; flex-direction: column; flex: 1; justify-content: space-between;">
+                <div>
+                    <h3 style="font-size: 1.05rem; color: var(--text-main); margin: 0 0 0.35rem; font-weight: 700; line-height: 1.3;">{{ r.title }}</h3>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                        Subject: {{ r.subject.title|default:"Core Engineering" }} · Author: {{ r.author.full_name|default:"Department Faculty" }}
+                    </p>
+                    {% if r.description %}
+                    <p style="font-size: 0.825rem; color: var(--text-secondary); line-height: 1.45; margin-bottom: 1rem;">
+                        {{ r.description|truncatechars:120 }}
+                    </p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <a href="{% if r.external_url %}{{ r.external_url }}{% elif r.file %}{{ r.file.url }}{% else %}#{% endif %}" target="_blank" rel="noopener noreferrer" class="btn primary small" style="width: 100%; text-align: center;">
+                        {% if r.resource_type == 'video' %}Watch Educational Lecture ↗{% else %}Open Resource ↗{% endif %}
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="card text-center text-muted" style="grid-column: 1 / -1; padding: 3rem;">
+            <h3>No learning resources matched your filter criteria</h3>
+            <p>Try resetting the branch or search term to browse the entire digital catalog.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if page.has_other_pages %}
+    <div class="pagination-container">
+        <div class="pagination">
+            {% if page.has_previous %}
+            <a href="?page={{ page.previous_page_number }}{% if branch %}&branch={{ branch }}{% endif %}{% if q %}&q={{ q }}{% endif %}" class="page-link">← Previous</a>
+            {% endif %}
+            <span class="page-current">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+            {% if page.has_next %}
+            <a href="?page={{ page.next_page_number }}{% if branch %}&branch={{ branch }}{% endif %}{% if q %}&q={{ q }}{% endif %}" class="page-link">Next →</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

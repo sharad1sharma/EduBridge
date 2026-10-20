@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if is_edit %}Edit Assessment{% else %}Create Assessment{% endif %} | Faculty Portal{% endblock %}
+
+{% block content %}
+<div class="page-container" style="max-width: 980px; margin: 0 auto; padding-bottom: 3rem;">
+    <div class="card-header-bar" style="margin-bottom: 1.25rem;">
+        <div>
+            <div class="admin-badge-pill" style="background: #EEF2FF; color: #6366F1;">Faculty Authoring Studio</div>
+            <h1 style="margin: 0.25rem 0 0.25rem;">{% if is_edit %}Edit Assessment: {{ assessment.title }}{% else %}Create New Assessment{% endif %}</h1>
+            <p style="margin: 0; color: var(--text-muted);">Author MCQs manually, paste bulk questions, or generate comprehensive test banks via TeachMate AI.</p>
+        </div>
+        <div>
+            <a href="{% url 'teacher_assessments' %}" class="btn">← Back to Assessments</a>
+        </div>
+    </div>
+
+    <form method="POST" id="assessmentAuthorForm" action="{% if is_edit %}{% url 'teacher_assessment_edit' assessment.pk %}{% else %}{% url 'teacher_assessment_new' %}{% endif %}">
+        {% csrf_token %}
+        <input type="hidden" name="questions_json" id="questions_json" value="{{ questions_json|default:'[]' }}">
+        <input type="hidden" name="coding_problems_json" id="coding_problems_json" value="{{ coding_problems_json|default:'[]' }}">
+        <input type="hidden" name="action" id="formSubmitAction" value="publish">
+
+        <!-- 1. Basic Metadata Card -->
+        <div class="card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+            <h3 style="font-size: 1.05rem; margin: 0 0 1rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+                <span>📋</span> Core Assessment Specifications
+            </h3>
+
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin-bottom: 1.2rem;">
+                <div>
+                    <label for="title" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Assessment Title *</label>
+                    <input type="text" name="title" id="title" class="form-input" value="{{ assessment.title|default:'' }}" placeholder="e.g. Dynamic Programming & Graph Theory Weekly Test" required>
+                </div>
+                <div>
+                    <label for="assessment_type" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Assessment Format</label>
+                    <select name="assessment_type" id="assessment_type" class="form-select">
+                        <option value="daily_assignment" {% if assessment.assessment_type == 'daily_assignment' %}selected{% endif %}>Daily Practice Assignment (MCQs)</option>
+                        <option value="weekly_test" {% if assessment.assessment_type == 'weekly_test' %}selected{% endif %}>Weekly Test (MCQs + Coding)</option>
+                        <option value="mixed" {% if assessment.assessment_type == 'mixed' %}selected{% endif %}>Mixed Technical Assessment</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.2rem;">
+                <div>
+                    <label for="topic" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Topic / Unit Name</label>
+                    <input type="text" name="topic" id="topic" class="form-input" value="{{ assessment.topic|default:'' }}" placeholder="e.g. Dijkstra, AVL Trees, Paging">
+                </div>
+                <div>
+                    <label for="difficulty" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Difficulty Standard</label>
+                    <select name="difficulty" id="difficulty" class="form-select">
+                        <option value="Easy" {% if assessment.difficulty == 'Easy' %}selected{% endif %}>Easy (Foundational)</option>
+                        <option value="Medium" {% if not assessment or assessment.difficulty == 'Medium' %}selected{% endif %}>Medium (Core Engineering)</option>
+                        <option value="Hard" {% if assessment.difficulty == 'Hard' %}selected{% endif %}>Hard (GATE / Advanced)</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="subject_id" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Course / Subject</label>
+                    <select name="subject_id" id="subject_id" class="form-select">
+                        <option value="">General Department Course</option>
+                        {% for s in subjects %}
+                        <option value="{{ s.id }}" {% if assessment and assessment.subject_id == s.id %}selected{% endif %}>{{ s.code }} - {{ s.title }} ({{ s.branch }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.2rem;">
+                <div>
+                    <label for="branch" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Engineering Branch</label>
+                    <select name="branch" id="branch" class="form-select">
+                        {% for b in branches %}
+                        <option value="{{ b.code }}" {% if assessment and assessment.branch == b.code %}selected{% endif %}>{{ b.code }} - {{ b.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="semester" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Semester</label>
+                    <select name="semester" id="semester" class="form-select">
+                        {% for sem in "12345678" %}
+                        <option value="{{ sem }}" {% if assessment and assessment.semester|stringformat:"s" == sem %}selected{% elif not assessment and sem == "3" %}selected{% endif %}>Semester {{ sem }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="duration_minutes" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Duration (Mins)</label>
+                    <input type="number" name="duration_minutes" id="duration_minutes" class="form-input" value="{{ assessment.duration_minutes|default:'45' }}" min="5" max="240" required>
+                </div>
+                <div>
+                    <label for="total_marks" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Total Marks</label>
+                    <input type="number" name="total_marks" id="total_marks" class="form-input" value="{{ assessment.total_marks|default:'100' }}" min="5" max="500" required>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.2rem;">
+                <div>
+                    <label for="start_date" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Available From (Start)</label>
+                    <input type="datetime-local" name="start_date" id="start_date" class="form-input" value="{% if assessment and assessment.start_date %}{{ assessment.start_date|date:'Y-m-d\TH:i' }}{% else %}{{ default_start_date }}{% endif %}">
+                </div>
+                <div>
+                    <label for="deadline" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Submission Deadline *</label>
+                    <input type="datetime-local" name="deadline" id="deadline" class="form-input" value="{% if assessment and assessment.deadline %}{{ assessment.deadline|date:'Y-m-d\TH:i' }}{% else %}{{ default_deadline }}{% endif %}" required>
+                </div>
+                <div>
+                    <label for="max_attempts" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Allowed Attempts</label>
+                    <input type="number" name="max_attempts" id="max_attempts" class="form-input" value="{{ assessment.max_attempts|default:'1' }}" min="1" max="5">
+                </div>
+                <div>
+                    <label for="negative_marking" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Negative Marks / Wrong MCQ</label>
+                    <input type="number" step="0.25" name="negative_marking" id="negative_marking" class="form-input" value="{{ assessment.negative_marking|default:'0.00' }}" min="0" max="5">
+                </div>
+            </div>
+
+            <!-- Anti-Cheating Integrity Policy -->
+            <div style="background: #F8FAFC; padding: 1rem; border-radius: 8px; border: 1px solid var(--border-subtle); margin-bottom: 1rem;">
+                <div style="display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; cursor: pointer;">
+                        <input type="checkbox" name="auto_submit_on_tab_switch" id="auto_submit_on_tab_switch" {% if not assessment or assessment.auto_submit_on_tab_switch %}checked{% endif %} style="width: 17px; height: 17px;">
+                        <span>🛡️ Auto-submit test if student tab-switches exceed limit</span>
+                    </label>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <label for="max_tab_switches_allowed" style="font-size: 0.85rem; color: var(--text-muted);">Max Allowed Violations:</label>
+                        <input type="number" name="max_tab_switches_allowed" id="max_tab_switches_allowed" class="form-input" value="{{ assessment.max_tab_switches_allowed|default:'3' }}" min="1" max="10" style="width: 70px;">
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label for="description" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Instructions & Syllabus Topics</label>
+                <textarea name="description" id="description" rows="2" class="form-input" placeholder="e.g. Ensure you complete within the allocated duration. Covers Units 3 and 4.">{{ assessment.description|default:'' }}</textarea>
+            </div>
+        </div>
+
+        <!-- 2. Question Authoring Studio -->
+        <div class="card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.75rem;">
+                <div>
+                    <h3 style="font-size: 1.05rem; margin: 0; color: var(--text-main);">📝 Questions & Assessment Content</h3>
+                    <small style="color: var(--text-muted);">Manage MCQs and practical coding problems.</small>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button type="button" class="btn small" id="tabBtnManual" style="background: var(--brand-primary); color: white;">✏️ Manual Builder</button>
+                    <button type="button" class="btn small" id="tabBtnBulk">📋 Bulk Paste</button>
+                    <button type="button" class="btn small" id="tabBtnAi" style="background: #EEF2FF; color: #4F46E5; border: 1px solid #C7D2FE;">🪄 AI Generate</button>
+                </div>
+            </div>
+
+            <!-- Tab Pane 1: Manual Question Builder -->
+            <div id="paneManual">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <span style="font-weight: 600; font-size: 0.9rem;" id="qCounterSummary">0 MCQs, 0 Coding Challenges</span>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button type="button" class="btn small" id="addMcqBtn">+ Add MCQ</button>
+                        <button type="button" class="btn small" id="addCodingBtn">+ Add Coding Problem</button>
+                    </div>
+                </div>
+
+                <!-- MCQs Container -->
+                <div id="mcqListContainer" style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+                    <!-- Dynamically populated via JS -->
+                </div>
+
+                <!-- Coding Problems Container -->
+                <div id="codingListContainer" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <!-- Dynamically populated via JS -->
+                </div>
+            </div>
+
+            <!-- Tab Pane 2: Bulk MCQ Parser -->
+            <div id="paneBulk" style="display: none;">
+                <div style="background: #F8FAFC; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid var(--border-subtle);">
+                    <h4 style="margin: 0 0 0.5rem; font-size: 0.9rem;">Paste MCQs in standard format:</h4>
+                    <p style="margin: 0; font-size: 0.8rem; color: var(--text-muted); font-family: monospace;">
+                        1. Which data structure uses LIFO order?<br>
+                        A) Queue<br>
+                        B) Stack<br>
+                        C) Tree<br>
+                        D) Array<br>
+                        Answer: B<br>
+                        Explanation: Stack processes elements in Last-In First-Out order.
+                    </p>
+                </div>
+                <textarea id="bulkPasteInput" rows="10" class="form-input" style="font-family: monospace; font-size: 0.85rem;" placeholder="Paste multiple MCQs here..."></textarea>
+                <div style="margin-top: 0.75rem; display: flex; justify-content: flex-end; gap: 0.5rem;">
+                    <button type="button" class="btn" id="parseBulkBtn" style="background: #2563EB; color: white;">Parse & Import to Questions List ↗</button>
+                </div>
+            </div>
+
+            <!-- Tab Pane 3: AI Question Generator -->
+            <div id="paneAi" style="display: none;">
+                <div style="background: #FAF5FF; padding: 1.25rem; border-radius: 8px; border: 1px solid #E9D5FF; margin-bottom: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <span style="font-size: 1.2rem;">🪄</span>
+                        <h4 style="margin: 0; font-size: 0.95rem; color: #581C87;">TeachMate AI Question Generator</h4>
+                    </div>
+                    <p style="margin: 0; font-size: 0.825rem; color: #6B21A8;">
+                        Generate tailored, syllabus-aligned engineering assessment questions with verified answer keys, distractors, and pedagogical explanations.
+                    </p>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div>
+                        <label for="aiGenTopic" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Topic or Syllabus Module</label>
+                        <input type="text" id="aiGenTopic" class="form-input" placeholder="e.g. Graph Shortest Paths & Dijkstra's Algorithm">
+                    </div>
+                    <div>
+                        <label for="aiGenMcqCount" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">MCQs Count</label>
+                        <input type="number" id="aiGenMcqCount" class="form-input" value="5" min="1" max="25">
+                    </div>
+                    <div>
+                        <label for="aiGenCodingCount" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Coding Challenges</label>
+                        <input type="number" id="aiGenCodingCount" class="form-input" value="1" min="0" max="5">
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+                    <button type="button" class="btn" id="runAiGenBtn" style="background: #7C3AED; color: white;">
+                        <span id="aiGenBtnText">Generate Questions with AI 🪄</span>
+                        <span id="aiGenSpinner" style="display: none;">Generating... ⏳</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Form Submission Buttons -->
+        <div style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 1rem 1.5rem; border-radius: 12px; border: 1px solid var(--border-subtle); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+            <div>
+                <a href="{% url 'teacher_assessments' %}" class="btn">Cancel</a>
+            </div>
+            <div style="display: flex; gap: 0.75rem;">
+                <button type="button" class="btn" id="btnSubmitDraft" style="background: #F1F5F9; color: #334155;">
+                    Save as Draft 💾
+                </button>
+                <button type="button" class="btn" id="btnSubmitSchedule" style="background: #EEF2FF; color: #4F46E5;">
+                    Schedule for Later 🗓️
+                </button>
+                <button type="button" class="btn primary" id="btnSubmitPublish" style="padding: 0.65rem 1.5rem;">
+                    Publish Assessment & Dispatch Alerts 🚀
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Interactive Question Authoring Studio (CSP compliant) -->
+<script src="{% static 'js/teacher_assessment_studio.js' %}"></script>
+{% endblock %}

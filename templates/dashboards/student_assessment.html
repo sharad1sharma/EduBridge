@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Assessment: {{ assessment.title }} | EduBridge{% endblock %}
+
+{% block content %}
+<div class="page-container" style="max-width: 900px; margin: 0 auto;">
+    <!-- Assessment Top Navigation & Live Timer Bar -->
+    <div class="card-header-bar" style="margin-bottom: 1.25rem; background: #FFFFFF; padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+        <div>
+            <div class="admin-badge-pill" style="background: #EFF6FF; color: #2563EB;">{{ assessment.get_assessment_type_display }}</div>
+            <h1 style="margin: 0.25rem 0 0.2rem; font-size: 1.35rem;">{{ assessment.title }}</h1>
+            <p style="margin: 0; color: var(--text-muted); font-size: 0.85rem;">
+                Subject: {{ assessment.subject.title|default:assessment.branch }} · Total Marks: {{ assessment.total_marks }} · Questions: {{ questions|length }} MCQs
+            </p>
+        </div>
+        <div style="text-align: right;">
+            <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Remaining Time</div>
+            <div id="assessmentTimer" class="mono" style="font-size: 1.6rem; font-weight: 800; color: #EF4444;">
+                --:--
+            </div>
+            <small id="autosaveStatus" style="font-size: 0.725rem; color: #059669;">Autosave active</small>
+        </div>
+    </div>
+
+    <!-- Disclosed Integrity Policy Banner -->
+    <div class="alert alert-info" style="margin-bottom: 1.25rem; background: #FFFBEB; border: 1px solid #FDE68A; color: #92400E; padding: 0.85rem 1.15rem; border-radius: var(--radius-sm); font-size: 0.85rem;">
+        <strong>🛡️ Disclosed Assessment Integrity Notice:</strong>
+        This evaluation is strictly timed by the server. Your answers are automatically synchronized as you select them.
+        {% if assessment.auto_submit_on_tab_switch %}
+        Leaving or switching away from this browser tab is monitored (Maximum allowed: {{ assessment.max_tab_switches_allowed }} events before automatic submission).
+        {% else %}
+        Focus transitions are logged to the faculty examination log. Please remain on this tab throughout the test.
+        {% endif %}
+    </div>
+
+    <form id="assessmentForm" method="POST" action="{% url 'student_assessment_submit' assessment.id %}" data-assessment-id="{{ assessment.id }}" data-remaining-seconds="{{ remaining_seconds }}" data-saved-answers="{{ attempt_answers_json|escape }}">
+        {% csrf_token %}
+
+        <div style="display: flex; flex-direction: column; gap: 1.25rem; margin-bottom: 2rem;">
+            {% for q in questions %}
+            <div class="card" style="border-left: 4px solid var(--brand-primary); padding: 1.35rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                    <span style="font-weight: 700; color: var(--brand-primary); font-size: 0.95rem;">Question {{ forloop.counter }} of {{ questions|length }}</span>
+                    <span class="badge badge-subtle">{{ q.marks|default:"4" }} Marks</span>
+                </div>
+                
+                <p style="font-size: 1rem; color: var(--text-main); font-weight: 500; margin-bottom: 1.2rem; line-height: 1.5;">
+                    {{ q.question }}
+                </p>
+
+                <div class="mcq-options-list" style="display: flex; flex-direction: column; gap: 0.65rem;">
+                    {% for opt in q.options %}
+                    <label class="mcq-option-label" style="display: flex; align-items: center; gap: 0.85rem; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border-subtle); cursor: pointer; transition: all 0.2s ease; background: #F8FAFC;">
+                        <input type="radio" name="q_{{ q.id }}" value="{% cycle 'A' 'B' 'C' 'D' %}" class="mcq-radio" style="width: 17px; height: 17px; cursor: pointer;">
+                        <span style="font-size: 0.9rem; color: var(--text-main);">
+                            <strong>{% cycle 'A' 'B' 'C' 'D' %}.</strong> {{ opt }}
+                        </span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+
+            {% if coding_problems %}
+            <div class="card" style="border-left: 4px solid #10B981; padding: 1.35rem;">
+                <h3 style="font-size: 1.15rem; color: var(--text-main); margin-bottom: 0.5rem;">Section B: Programming Problems ({{ coding_problems|length }} Challenges)</h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Implement the required functions below. Starter code and constraints are pre-loaded.</p>
+
+                {% for cp in coding_problems %}
+                <div style="margin-bottom: 1.5rem; padding: 1rem; background: #F8FAFC; border-radius: 8px; border: 1px solid var(--border-subtle);">
+                    <div style="font-weight: 700; color: #10B981; margin-bottom: 0.35rem;">Problem {{ forloop.counter }}: {{ cp.title }}</div>
+                    <p style="font-size: 0.875rem; margin-bottom: 0.5rem;">{{ cp.description }}</p>
+                    <div style="font-family: var(--font-mono); font-size: 0.775rem; background: #FFFFFF; padding: 0.5rem; border: 1px solid var(--border-subtle); border-radius: 4px; margin-bottom: 0.5rem;">
+                        <strong>Sample Input:</strong> {{ cp.sample_input }} | <strong>Sample Output:</strong> {{ cp.sample_output }}
+                    </div>
+                    <textarea name="code_{{ cp.id }}" rows="5" class="form-input mono" style="font-size: 0.85rem;" placeholder="# Write your Python/C++ solution here..."></textarea>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sticky Submit Actions Bar -->
+        <div class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; position: sticky; bottom: 1rem; background: #FFFFFF; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12); border-radius: var(--radius-md);">
+            <div>
+                <span id="answeredCounter" style="font-weight: 600; font-size: 0.9rem; color: var(--text-main);">0 answered</span>
+                <span style="color: var(--text-muted); font-size: 0.85rem;"> · Automatic submission at deadline</span>
+            </div>
+            <div style="display: flex; gap: 0.75rem;">
+                <button type="submit" id="submitAssessmentBtn" class="btn primary">
+                    Finalize & Submit Assessment ↗
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Embedded Assessment Controller adhering to CSP script-src self -->
+<script src="{% static 'js/assessment_player.js' %}"></script>
+{% endblock %}

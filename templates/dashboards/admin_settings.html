@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Platform Settings & Integrations | EduBridge Administration{% endblock %}
+
+{% block content %}
+<div class="page-container admin-workspace">
+    <div class="admin-header-flex">
+        <div>
+            <div class="admin-badge-pill">System Configuration</div>
+            <h1 class="admin-main-title">Platform Configuration & Integrations</h1>
+            <p class="admin-subtext">Manage global academic policies, platform parameters, and inspect third-party service integration health.</p>
+        </div>
+        <div class="admin-actions-bar">
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">← Back to Overview</a>
+        </div>
+    </div>
+
+    <div class="grid grid-2">
+        <!-- System Configuration Form -->
+        <div class="dashboard-card">
+            <div class="card-header-flex">
+                <div>
+                    <h3 class="card-title">Global Academic & System Policies</h3>
+                    <p class="card-subtitle">Non-secret runtime settings applied across the platform.</p>
+                </div>
+            </div>
+
+            <form method="POST" action="{% url 'admin_settings' %}" class="admin-form mt-3">
+                {% csrf_token %}
+                <div class="form-group mb-3">
+                    <label for="platform_name" class="form-label">Platform Name & Branding</label>
+                    <input type="text" name="platform_name" id="platform_name" class="form-input" value="{{ settings_map.platform_name|default:'EduBridge AI Platform' }}" required>
+                    <small class="text-muted">Display name shown in titles and notification headers.</small>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="academic_year" class="form-label">Active Academic Year</label>
+                    <input type="text" name="academic_year" id="academic_year" class="form-input" value="{{ settings_map.academic_year|default:'2026-2027' }}" required>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="default_mcq_duration" class="form-label">Default Assessment Duration (Minutes)</label>
+                    <input type="number" name="default_mcq_duration" id="default_mcq_duration" class="form-input" value="{{ settings_map.default_mcq_duration|default:'60' }}" min="10" max="240" required>
+                    <small class="text-muted">Applied when teachers don't specify custom timer durations.</small>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="retention_days" class="form-label">Data Retention Threshold (Days)</label>
+                    <input type="number" name="retention_days" id="retention_days" class="form-input" value="{{ settings_map.retention_days|default:'365' }}" min="30" max="1825" required>
+                    <small class="text-muted">Retention horizon for completed assessments and logs.</small>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="integrity_level" class="form-label">Exam Integrity & Tab-Monitoring Sensitivity</label>
+                    <select name="integrity_level" id="integrity_level" class="form-select">
+                        <option value="strict" {% if settings_map.integrity_level == 'strict' %}selected{% endif %}>Strict (Auto-submit on 3 unfocused events)</option>
+                        <option value="moderate" {% if settings_map.integrity_level == 'moderate' or not settings_map.integrity_level %}selected{% endif %}>Moderate (Log visibility warnings to teacher)</option>
+                        <option value="lenient" {% if settings_map.integrity_level == 'lenient' %}selected{% endif %}>Lenient (Advisory logging only)</option>
+                    </select>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="ai_model_tier" class="form-label">EduBridge AI Operational Mode</label>
+                    <select name="ai_model_tier" id="ai_model_tier" class="form-select">
+                        <option value="local_neural" {% if settings_map.ai_model_tier == 'local_neural' or not settings_map.ai_model_tier %}selected{% endif %}>Local Neural Query Engine (Direct Database Retrieval)</option>
+                        <option value="hybrid_cloud" {% if settings_map.ai_model_tier == 'hybrid_cloud' %}selected{% endif %}>Hybrid Cloud (Requires Server Secret Key in ENV)</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">Save Configuration Changes</button>
+            </form>
+        </div>
+
+        <!-- Integration Statuses -->
+        <div class="dashboard-card">
+            <div class="card-header-flex">
+                <div>
+                    <h3 class="card-title">Integration & Service Status</h3>
+                    <p class="card-subtitle">Real-time status of connected subsystems and APIs.</p>
+                </div>
+            </div>
+
+            <div class="integrations-list mt-3">
+                {% for item in integrations %}
+                <div class="integration-item p-3 mb-3 border rounded-3 bg-light-subtle">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <strong class="h6 mb-0">{{ item.name }}</strong>
+                        <span class="badge {% if item.active %}badge-success{% else %}badge-warning{% endif %}">
+                            {{ item.status }}
+                        </span>
+                    </div>
+                    <div class="text-muted small">Provider: {{ item.provider }}</div>
+                    <div class="text-secondary small mt-1">
+                        {% if item.active %}
+                        ✓ Active and responding to server requests.
+                        {% else %}
+                        ⚠️ Standby / Mock mode active.
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="alert alert-info mt-4">
+                <strong>🔒 Security Notice:</strong>
+                All API keys, secret credentials, and database passwords are kept securely on the server via environment variables and are never surfaced or transmitted via browser forms.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

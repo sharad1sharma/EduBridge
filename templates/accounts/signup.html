@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Create student account{% endblock %}
+{% block content %}
+<section class="card" style="max-width: 32rem; margin: 2rem auto; padding: 2rem;">
+  <div style="text-align: center; margin-bottom: 1.5rem;">
+    <div class="brand" style="margin-bottom: 0.75rem; justify-content: center;">
+      <svg viewBox="0 0 34 20" width="36" height="22" aria-hidden="true" focusable="false">
+        <path d="M2 17 C 9 1, 25 1, 32 17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+        <path d="M1 17 H33" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+        <path d="M10 17 V9 M17 17 V5 M24 17 V9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <span>EduBridge</span>
+    </div>
+    <h1 style="font-size: 1.5rem; justify-content: center; margin-bottom: 0.35rem;">Create a student account</h1>
+    <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">You’ll get a unique student ID (<span class="mono">S1001...</span>) upon onboarding</p>
+  </div>
+
+  <form method="post" novalidate>{% csrf_token %}
+    {% include "partials/form_errors.html" %}
+    {% for field in form %}{% include "partials/field.html" %}{% endfor %}
+    <button class="btn primary" type="submit" style="width: 100%; padding: 0.75rem; font-size: 0.95rem; margin-top: 0.75rem;">Create account</button>
+  </form>
+
+  <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-subtle); text-align: center; font-size: 0.85rem;">
+    <p style="margin: 0; color: var(--text-secondary);">Already registered? <a href="{% url 'accounts:login' %}" style="font-weight: 600;">Sign in to your account</a>.</p>
+    <p style="font-size: 0.775rem; color: var(--text-muted); margin-top: 0.5rem;">Teacher and administrator accounts are provisioned exclusively by institutional IT.</p>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}My Academic Results | EduBridge{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="card-header-bar" style="margin-bottom: 1.5rem;">
+        <div>
+            <div class="admin-badge-pill" style="background: #ECFDF5; color: #059669;">Academic Records</div>
+            <h1 style="margin: 0.25rem 0 0.25rem;">My Evaluation Results & Assessment History</h1>
+            <p style="margin: 0; color: var(--text-muted);">Review scores, MCQ accuracy, and submission integrity logs for all completed assessments.</p>
+        </div>
+        <div>
+            <a href="{% url 'student_dashboard' %}" class="btn">← Back to Dashboard</a>
+        </div>
+    </div>
+
+    <!-- Summary Statistics Grid -->
+    <div class="dense-metric-grid" style="margin-bottom: 1.5rem;">
+        <div class="dense-metric-item">
+            <div class="dense-metric-label">Completed Tests</div>
+            <div class="dense-metric-num" style="color: #2563EB;">{{ total_attempts }}</div>
+            <small style="color: #059669; font-weight: 700; font-size: 0.725rem;">Submitted on time</small>
+        </div>
+        <div class="dense-metric-item">
+            <div class="dense-metric-label">Average Score</div>
+            <div class="dense-metric-num" style="color: #059669;">{{ avg_score }}%</div>
+            <small style="color: var(--text-muted); font-size: 0.725rem;">Normalized accuracy</small>
+        </div>
+        <div class="dense-metric-item">
+            <div class="dense-metric-label">Academic Standing</div>
+            <div class="dense-metric-num" style="color: #6366F1;">{% if avg_score >= 80 %}Distinction{% elif avg_score >= 60 %}First Class{% else %}Passing{% endif %}</div>
+            <small style="color: #6366F1; font-weight: 700; font-size: 0.725rem;">Semester Standing</small>
+        </div>
+    </div>
+
+    <!-- Results Table -->
+    <div class="card">
+        <div class="card-header-bar">
+            <h2>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                Assessment Submissions
+            </h2>
+            <span class="badge badge-active">{{ attempts|length }} Records</span>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th scope="col">Assessment Title</th>
+                        <th scope="col">Subject</th>
+                        <th scope="col">Submitted At</th>
+                        <th scope="col">Score</th>
+                        <th scope="col">Percentage</th>
+                        <th scope="col">Integrity Log</th>
+                        <th scope="col">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for att in attempts %}
+                    <tr>
+                        <td>
+                            <strong>{{ att.assessment.title }}</strong>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">{{ att.assessment.get_assessment_type_display }}</div>
+                        </td>
+                        <td>{{ att.assessment.subject.title|default:att.assessment.branch }}</td>
+                        <td>{{ att.submitted_at|date:"M d, Y H:i"|default:"Recorded" }}</td>
+                        <td><strong style="color: #2563EB;">{{ att.score }}</strong> / {{ att.assessment.total_marks }}</td>
+                        <td>
+                            {% widthratio att.score att.assessment.total_marks 100 %}%
+                        </td>
+                        <td>
+                            {% if att.tab_switches_recorded > 0 %}
+                            <span class="badge badge-pending">{{ att.tab_switches_recorded }} tab switches</span>
+                            {% else %}
+                            <span class="badge badge-active">Clean Focus</span>
+                            {% endif %}
+                            {% if att.is_auto_submitted %}
+                            <span class="badge badge-alert">Auto-Finalized</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge badge-active">Graded & Recorded</span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            You have not completed any assessments yet. Visit your <a href="{% url 'student_dashboard' %}">Dashboard</a> to start active assignments.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

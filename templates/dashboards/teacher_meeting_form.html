@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Schedule Live Class | Faculty Portal{% endblock %}
+
+{% block content %}
+<div class="page-container" style="max-width: 750px; margin: 0 auto;">
+    <div class="card-header-bar" style="margin-bottom: 1.25rem;">
+        <div>
+            <div class="admin-badge-pill" style="background: #EEF2FF; color: #6366F1;">Live Teaching</div>
+            <h1 style="margin: 0.25rem 0 0.25rem;">Schedule Online Lecture / Tutorial</h1>
+            <p style="margin: 0; color: var(--text-muted);">Enrolled students will receive instant dashboard and email notification alerts.</p>
+        </div>
+        <div>
+            <a href="{% url 'teacher_meetings' %}" class="btn">← Back to Meetings</a>
+        </div>
+    </div>
+
+    <div class="card" style="padding: 1.5rem;">
+        <form method="POST" action="{% url 'teacher_meeting_new' %}">
+            {% csrf_token %}
+
+            <div style="margin-bottom: 1.2rem;">
+                <label for="title" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Lecture Title</label>
+                <input type="text" name="title" id="title" class="form-input" placeholder="e.g. Design & Analysis of Algorithms Tutorial: Dynamic Programming" required>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.2rem;">
+                <div>
+                    <label for="branch" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Cohort Branch</label>
+                    <select name="branch" id="branch" class="form-select">
+                        {% for b in branches %}
+                        <option value="{{ b.code }}">{{ b.code }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="semester" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Semester</label>
+                    <select name="semester" id="semester" class="form-select">
+                        {% for sem in "12345678" %}
+                        <option value="{{ sem }}" {% if sem == "3" %}selected{% endif %}>Semester {{ sem }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="subject_id" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Subject</label>
+                    <select name="subject_id" id="subject_id" class="form-select">
+                        <option value="">Core Department Session</option>
+                        {% for s in subjects %}
+                        <option value="{{ s.id }}">{{ s.code }} - {{ s.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.2rem;">
+                <div>
+                    <label for="scheduled_at" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Date & Time</label>
+                    <input type="datetime-local" name="scheduled_at" id="scheduled_at" class="form-input" required>
+                </div>
+                <div>
+                    <label for="duration_minutes" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Duration (Minutes)</label>
+                    <input type="number" name="duration_minutes" id="duration_minutes" class="form-input" value="60" min="15" max="240" required>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1.2rem;">
+                <label for="meeting_link" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Meeting Room URL (Google Meet / Zoom / MS Teams)</label>
+                <input type="url" name="meeting_link" id="meeting_link" class="form-input" placeholder="https://meet.google.com/abc-defg-hij" required>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label for="description" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem;">Session Description & Agenda</label>
+                <textarea name="description" id="description" rows="3" class="form-input" placeholder="Topics covered, prerequisite textbook chapters..."></textarea>
+            </div>
+
+            <button type="submit" class="btn primary" style="width: 100%; padding: 0.75rem;">
+                Confirm Schedule & Dispatch Student Invitations ↗
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

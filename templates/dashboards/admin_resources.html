@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Resource Management · Administration{% endblock %}
+{% block content %}
+
+<div class="card-header-bar" style="margin-bottom: 1.25rem;">
+  <div>
+    <h1 style="margin-bottom: 0.25rem;">Learning Resources & Repository Management 📚</h1>
+    <p style="margin: 0; color: var(--text-muted);">Platform-wide inspection of lecture notes, PDF manuals, coding exercises, and video links</p>
+  </div>
+</div>
+
+<div class="dashboard-columns-2">
+  <!-- Left: Resources Directory -->
+  <div style="display: flex; flex-direction: column; gap: 1.35rem;">
+
+    <form method="get" class="filters">
+      <div class="field">
+        <label for="branch">Branch</label>
+        <select id="branch" name="branch">
+          <option value="">All Branches</option>
+          {% for b in branches %}<option value="{{ b.code }}"{% if b.code == branch %} selected{% endif %}>{{ b.code }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label for="type">Resource Type</label>
+        <select id="type" name="type">
+          <option value="">All Media Types</option>
+          <option value="notes"{% if type == "notes" %} selected{% endif %}>Lecture Notes</option>
+          <option value="pdf"{% if type == "pdf" %} selected{% endif %}>PDF Document</option>
+          <option value="lab_manual"{% if type == "lab_manual" %} selected{% endif %}>Lab Manual</option>
+          <option value="video"{% if type == "video" %} selected{% endif %}>Educational Video</option>
+          <option value="code"{% if type == "code" %} selected{% endif %}>Coding Archive</option>
+        </select>
+      </div>
+      <button class="btn primary" type="submit">Filter Resources</button>
+    </form>
+
+    <section class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Title & Author</th>
+              <th scope="col">Type</th>
+              <th scope="col">Branch & Sem</th>
+              <th scope="col">Downloads</th>
+              <th scope="col">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in page.object_list %}
+            <tr>
+              <td>
+                <strong>{{ r.title }}</strong><br>
+                <small style="color: var(--text-muted);">Author: {{ r.author.full_name|default:"EduBridge Faculty" }}</small>
+              </td>
+              <td><span class="role-chip">{{ r.get_resource_type_display }}</span></td>
+              <td><strong>{{ r.branch }}</strong> Sem {{ r.semester }}</td>
+              <td><span class="badge badge-active">{{ r.download_count }} downloads</span></td>
+              <td>
+                <div style="display: flex; gap: 0.35rem;">
+                  {% if r.external_url %}<a class="btn small" href="{{ r.external_url }}" target="_blank" rel="noopener">Open ↗</a>{% endif %}
+                  <form method="post" onsubmit="return confirm('Delete resource {{ r.title }}?');" style="margin: 0;">{% csrf_token %}
+                    <input type="hidden" name="action" value="delete_resource">
+                    <input type="hidden" name="resource_id" value="{{ r.pk }}">
+                    <button class="btn small danger" type="submit">Delete</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="empty">No learning resources found.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% include "partials/pagination.html" %}
+    </section>
+
+  </div>
+
+  <!-- Right: Add New Resource Form -->
+  <div style="display: flex; flex-direction: column; gap: 1.35rem;">
+
+    <section class="card">
+      <div class="card-header-bar">
+        <h2>+ Publish Learning Resource</h2>
+      </div>
+      <form method="post">{% csrf_token %}
+        <input type="hidden" name="action" value="add_resource">
+
+        <div class="field">
+          <label for="res_title">Resource Title</label>
+          <input id="res_title" name="title" placeholder="e.g. Operating Systems Kernel Design Notes" required>
+        </div>
+
+        <div class="form-grid">
+          <div class="field">
+            <label for="res_branch">Target Branch</label>
+            <select id="res_branch" name="branch" required>
+              {% for b in branches %}<option value="{{ b.code }}">{{ b.code }} - {{ b.name }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label for="res_sem">Target Semester</label>
+            <select id="res_sem" name="semester">
+              {% for s in "12345678" %}<option value="{{ s }}">Semester {{ s }}</option>{% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="res_type">Resource Type</label>
+          <select id="res_type" name="resource_type">
+            <option value="pdf">PDF Document</option>
+            <option value="notes">Lecture Notes</option>
+            <option value="lab_manual">Lab Manual</option>
+            <option value="video">Educational Video Link</option>
+            <option value="code">Coding Exercise</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="res_url">External Resource or Video URL</label>
+          <input id="res_url" name="external_url" type="url" placeholder="https://..." required>
+        </div>
+
+        <div class="field">
+          <label for="res_desc">Resource Description</label>
+          <textarea id="res_desc" name="description" rows="2" placeholder="Summary of topics covered..."></textarea>
+        </div>
+
+        <button class="btn primary" type="submit" style="width: 100%;">Publish Resource</button>
+      </form>
+    </section>
+
+  </div>
+</div>
+
+{% endblock %}

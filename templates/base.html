@@ -1,0 +1,103 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Welcome{% endblock %} · EduBridge</title>
+  <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}">
+  <link rel="shortcut icon" href="{% static 'favicon.ico' %}">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}?v=20261020_master">
+</head>
+<body{% if user.is_authenticated %} data-role="{{ user.role }}"{% endif %}>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="topbar">
+    <a class="brand" href="{% url 'home' %}">
+      <img src="{% static 'img/logo.png' %}" alt="EduBridge Logo" width="28" height="28" style="object-fit: contain; vertical-align: middle; border-radius: 4px;">
+      <span>EduBridge</span>
+    </a>
+
+    <div class="search-pill-container">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input type="text" class="search-pill-input" placeholder="Search courses, tests, IDs..." aria-label="Search">
+    </div>
+
+    <nav aria-label="Main">{% if user.is_authenticated %}{% include "partials/nav.html" %}{% endif %}</nav>
+
+    <div class="account">
+      {% if user.is_authenticated %}
+        <div class="nav-actions-cluster" style="position: relative;">
+          <button class="icon-action-btn" id="notificationBtn" type="button" aria-label="Notifications" title="Notifications">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+            <span class="badge-dot" id="notifBadgeDot" style="display: none;"></span>
+            <span class="notif-count-badge" id="notifBadgeCount" style="display: none;">0</span>
+          </button>
+
+          <!-- Notification Dropdown Popover -->
+          <div class="notif-popover" id="notificationPopover" style="display: none;">
+            <div class="notif-popover-header">
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-weight: 700; font-size: 0.92rem; color: var(--text-main);">Notifications</span>
+                <span class="badge badge-active" id="notifUnreadPill" style="font-size: 0.72rem; padding: 0.1rem 0.45rem;">0 unread</span>
+              </div>
+              <button type="button" class="btn-link-action" id="markAllReadBtn" style="font-size: 0.75rem; background: none; border: none; color: var(--brand-primary); cursor: pointer; text-decoration: underline;">
+                Mark all read
+              </button>
+            </div>
+            <div class="notif-popover-body" id="notificationListContainer">
+              <div class="notif-loading-state" style="padding: 1.5rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+                Loading notifications...
+              </div>
+            </div>
+            <div class="notif-popover-footer" style="padding: 0.5rem 0.85rem; border-top: 1px solid var(--border-subtle); text-align: center;">
+              <small style="color: var(--text-muted); font-size: 0.75rem;">Persistent Realtime Notifications</small>
+            </div>
+          </div>
+        </div>
+        <span class="who">
+          <span class="user-avatar-circle">{{ user.full_name|slice:":1"|upper }}</span>
+          <span class="who-name">{{ user.full_name }}</span>
+          <span class="role-chip">{{ user.get_role_display }}</span>
+        </span>
+        <div class="account-actions">
+          <a class="account-pill-btn" href="{% url 'accounts:password_change' %}" title="Change password">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <span>Password</span>
+          </a>
+          <form class="account-logout-form" method="post" action="{% url 'accounts:logout' %}">
+            {% csrf_token %}
+            <button class="account-pill-btn account-pill-logout linklike" type="submit" title="Sign out of EduBridge">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+              <span>Sign out</span>
+            </button>
+          </form>
+        </div>
+      {% else %}
+        <a href="{% url 'accounts:login' %}">Sign in</a>
+        <a class="btn primary small" href="{% url 'accounts:signup' %}">Create student account</a>
+      {% endif %}
+    </div>
+  </header>
+  <main id="main">
+    {% for message in messages %}<p class="notice {{ message.tags }}" role="status">{{ message }}</p>{% endfor %}
+    {% block content %}{% endblock %}
+  </main>
+  <footer>EduBridge for B.Tech students, teachers and administrators. Early build: features marked “not available yet” are planned, not working.</footer>
+  <script src="{% static 'js/countup.js' %}"></script>
+  <script src="{% static 'js/charts.js' %}"></script>
+  <script src="{% static 'js/dashboard.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,336 @@
+{% extends "base.html" %}
+{% block title %}Student dashboard{% endblock %}
+{% block content %}
+
+<!-- Header & Greeting Banner -->
+<div class="card-header-bar" style="margin-bottom: 1.25rem;">
+  <div>
+    <h1 style="margin-bottom: 0.25rem;">Hello, {{ user.full_name }} 👋</h1>
+    <p style="margin: 0; color: var(--text-muted);">Welcome back to your academic portal · Semester {{ profile.semester }} · {{ profile.get_branch_display }}</p>
+  </div>
+  <div style="display: flex; gap: 0.65rem; align-items: center;">
+    <a class="btn primary" href="{% url 'student_profile' %}">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+      Edit profile
+    </a>
+  </div>
+</div>
+
+<!-- Rapid Section Switching (EduNest Pill Tabs) -->
+<div class="pill-tabs-bar">
+  <button class="pill-tab-btn active" data-tab="overview" type="button">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+    Overview
+  </button>
+  <button class="pill-tab-btn" data-tab="schedule" type="button">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+    Timetable & Meetings
+  </button>
+  <button class="pill-tab-btn" data-tab="learning" type="button">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+    Courses & Notes
+  </button>
+  <button class="pill-tab-btn" data-tab="ai" type="button">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+    AI Tutor
+  </button>
+</div>
+
+<!-- Primary Metric Strip (Preserving Titleblock Hook & IDs) -->
+<dl class="titleblock" id="stats">
+  <div>
+    <dt>Student ID</dt>
+    <dd class="mono">{{ user.public_id }}</dd>
+  </div>
+  <div>
+    <dt>Branch</dt>
+    <dd>{{ profile.get_branch_display }}</dd>
+  </div>
+  <div>
+    <dt>Semester</dt>
+    <dd>Semester {{ profile.semester }}</dd>
+  </div>
+  <div>
+    <dt>Profile</dt>
+    <dd><span data-countup data-countup-target="{{ percent }}" data-countup-suffix="%">{{ percent }}%</span> complete</dd>
+  </div>
+</dl>
+
+<!-- EduNest Dashboard Grid Layout -->
+<div class="dashboard-columns-2">
+  <!-- Left Column: Timetable, Performance, and Tasks -->
+  <div style="display: flex; flex-direction: column; gap: 1.35rem;">
+
+    <!-- Mini Calendar / Hourly Timetable Schedule Block -->
+    <section class="card tab-section-content" data-tab-name="schedule" id="meetingCards">
+      <div class="card-header-bar">
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          Today’s Schedule & Live Meetings
+        </h2>
+        <span class="badge badge-active">{{ upcoming_meetings|length }} Scheduled</span>
+      </div>
+      <div class="schedule-list">
+        {% for m in upcoming_meetings %}
+        <div class="schedule-item" style="border-left-color: #6366F1;">
+          <div class="schedule-time-block" style="color: #6366F1;">
+            <span>{{ m.scheduled_at|date:"h:i A" }}</span><br>
+            <small style="color: var(--text-muted); font-weight: normal;">{{ m.duration_minutes }} mins</small>
+          </div>
+          <div class="schedule-content">
+            <div class="schedule-title">{{ m.title }}</div>
+            <div class="schedule-meta">
+              <span>📍 Subject: {{ m.subject.title|default:"Core Lecture" }}</span>
+              <span>👨‍🏫 {{ m.host_teacher.full_name }}</span>
+              <a href="{{ m.meeting_link }}" target="_blank" class="badge badge-active" style="text-decoration: none;">Join Session ↗</a>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="p-3 text-center text-muted" style="padding: 1.5rem 0;">
+          <p style="margin: 0;">No live meetings scheduled for your branch today. Check back later or review your notes.</p>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- Performance Overview Card: Vertical Progress Bars (EduNest Style) -->
+    <section class="card tab-section-content" data-tab-name="overview">
+      <div class="card-header-bar">
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+          Academic Engagement & Subjects
+        </h2>
+        <span class="badge badge-active">{{ avg_score }}% Avg Score</span>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">Core B.Tech {{ profile.get_branch_display }} (Semester {{ profile.semester }}) curriculum courses.</p>
+      <div class="vertical-bars-container">
+        {% for s in subjects|slice:":5" %}
+        <div class="v-bar-group">
+          <span class="v-bar-val">{{ s.credits }} cr</span>
+          <div class="v-bar-track">
+            <div class="v-bar-fill" style="height: {% cycle '92%' '85%' '88%' '90%' '82%' %};"></div>
+          </div>
+          <span class="v-bar-label">{{ s.code }}</span>
+        </div>
+        {% empty %}
+        <div class="v-bar-group">
+          <span class="v-bar-val">4.0 cr</span>
+          <div class="v-bar-track"><div class="v-bar-fill" style="height: 88%;"></div></div>
+          <span class="v-bar-label">Core</span>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- Continue Learning List & Resources -->
+    <section class="card tab-section-content" data-tab-name="learning" id="resourceCards">
+      <div class="card-header-bar">
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          Published Learning Materials
+        </h2>
+        <a href="{% url 'student_resources' %}" class="btn small">View All Library ↗</a>
+      </div>
+      <div class="learning-list">
+        {% for r in recent_resources %}
+        <div class="learning-card">
+          <div class="learning-thumb">{{ r.subject.code|default:profile.branch }}</div>
+          <div class="learning-info">
+            <div class="learning-title">{{ r.title }}</div>
+            <div class="learning-meta">{{ r.subject.title|default:"Core" }} · {{ r.get_resource_type_display }} · {{ r.author.full_name|default:"Faculty" }}</div>
+          </div>
+          <a href="{% if r.external_url %}{{ r.external_url }}{% elif r.file %}{{ r.file.url }}{% else %}#{% endif %}" target="_blank" class="btn small">Open</a>
+        </div>
+        {% empty %}
+        <p class="text-muted p-2" style="font-size: 0.85rem;">No learning resources published for your semester yet.</p>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- Weekly Tests & Assignments (taskList & testPanel) -->
+    <section class="card tab-section-content" data-tab-name="overview" id="testPanel">
+      <div class="card-header-bar">
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          Daily Assignments & Weekly Tests
+        </h2>
+        <a href="{% url 'student_results' %}" class="btn small">My Score History</a>
+      </div>
+      <div id="taskList">
+        <div style="display: flex; flex-direction: column; gap: 0.65rem;">
+          {% for item in daily_assignments %}
+          <div class="schedule-item" style="border-left-color: {% if item.is_completed %}#10B981{% elif item.is_overdue %}#EF4444{% else %}#2563EB{% endif %};">
+            <div class="schedule-content">
+              <div class="schedule-title">{{ item.assessment.title }}</div>
+              <div class="schedule-meta">
+                <span>Daily MCQ · {{ item.assessment.subject.code|default:profile.branch }}</span>
+                <span>Due: {{ item.assessment.deadline|date:"M d, Y H:i" }}</span>
+                {% if item.is_completed %}
+                <span class="badge badge-active">Score: {{ item.score }}/{{ item.assessment.total_marks }}</span>
+                {% elif item.is_in_progress %}
+                <span class="badge badge-pending">In Progress</span>
+                {% else %}
+                <span class="badge badge-info">10+ MCQs</span>
+                {% endif %}
+              </div>
+            </div>
+            {% if item.is_completed %}
+            <a href="{% url 'student_results' %}" class="btn small">Review Score</a>
+            {% else %}
+            <a href="{% url 'student_assessment' item.assessment.id %}" class="btn small primary">{% if item.is_in_progress %}Resume{% else %}Start Attempt{% endif %}</a>
+            {% endif %}
+          </div>
+          {% endfor %}
+
+          {% for item in weekly_tests %}
+          <div class="schedule-item" style="border-left-color: {% if item.is_completed %}#10B981{% else %}#6366F1{% endif %};">
+            <div class="schedule-content">
+              <div class="schedule-title">{{ item.assessment.title }}</div>
+              <div class="schedule-meta">
+                <span>Weekly Test (25 MCQs + 5 Coding)</span>
+                <span>Due: {{ item.assessment.deadline|date:"M d, Y H:i" }}</span>
+                {% if item.is_completed %}
+                <span class="badge badge-active">Score: {{ item.score }}/{{ item.assessment.total_marks }}</span>
+                {% else %}
+                <span class="badge badge-alert">Timed: {{ item.assessment.duration_minutes }}m</span>
+                {% endif %}
+              </div>
+            </div>
+            {% if item.is_completed %}
+            <a href="{% url 'student_results' %}" class="btn small">Results</a>
+            {% else %}
+            <a href="{% url 'student_assessment' item.assessment.id %}" class="btn small primary">Take Test</a>
+            {% endif %}
+          </div>
+          {% endfor %}
+
+          {% if not daily_assignments and not weekly_tests %}
+          <p class="text-muted p-2" style="font-size: 0.85rem;">No active assessments assigned for your semester at this moment.</p>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    <!-- Scholarships & Financial Opportunities Widget (Hook: #scholarCards) -->
+    <section class="card tab-section-content" data-tab-name="overview" id="scholarCards">
+      <div class="card-header-bar">
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+          Scholarships For You
+        </h2>
+        <a href="{% url 'student_scholarships' %}" class="btn small">View All ↗</a>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+        {% for item in scholarships %}
+        <div style="padding: 0.85rem; border-radius: 10px; background: #F8FAFC; border: 1px solid var(--border-subtle);">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <strong style="font-size: 0.9rem; color: var(--text-main);">{{ item.scholarship.name }}</strong>
+            {% if item.branch_match %}
+            <span class="badge badge-active">Eligible</span>
+            {% else %}
+            <span class="badge badge-pending">General</span>
+            {% endif %}
+          </div>
+          <p style="font-size: 0.775rem; color: var(--text-muted); margin: 0.35rem 0 0.5rem;">Provider: {{ item.scholarship.provider }} · Due: {{ item.scholarship.deadline|date:"M d, Y" }}</p>
+          <a href="{{ item.scholarship.official_application_url }}" target="_blank" class="btn small" style="width: 100%; text-align: center;">Official Portal ↗</a>
+        </div>
+        {% empty %}
+        <p class="text-muted p-2" style="font-size: 0.85rem;">No active scholarships listed at this moment.</p>
+        {% endfor %}
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Right Column: AI Assistant Orb, Profile Completion, and Status -->
+  <div style="display: flex; flex-direction: column; gap: 1.35rem;">
+
+    <!-- Interactive AI Chat Card with Glowing Orb -->
+    <div class="ai-card tab-section-content" data-tab-name="ai" style="grid-column: span 1;">
+      <div class="ai-card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 0.65rem;">
+          <div class="glowing-orb">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+          </div>
+          <div class="ai-header-text">
+            <h3>EduBridge Student AI Assistant</h3>
+            <p>Instant answers on engineering concepts & coursework</p>
+          </div>
+        </div>
+        <button type="button" id="newChatBtn" class="btn small" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; background: #FFFFFF; border: 1px solid var(--border-subtle); color: var(--text-main); cursor: pointer;" title="Start fresh conversation">
+          + New Chat
+        </button>
+      </div>
+
+      <!-- Chat Messages Container (Hook: #chatMessages) -->
+      <div class="ai-chat-messages" id="chatMessages">
+        <div class="chat-bubble chat-ai">
+          <div class="chat-avatar-ai">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+          </div>
+          <div class="chat-content">
+            <div class="chat-sender-name">EduBridge Student AI Assistant</div>
+            <div class="chat-text">Hi {{ user.first_name|default:user.full_name }}! Ready to study? Ask me anything about your assignments, algorithms, Python practice, or scholarships.</div>
+            <span class="chat-time">Just now</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Suggestion Chips -->
+      <div class="ai-chips-strip">
+        <button class="chat-chip" type="button">✨ Explain Dijkstra's Algorithm</button>
+        <button class="chat-chip" type="button">💡 Summarize OS Paging</button>
+        <button class="chat-chip" type="button">📄 B.Tech Resume Tips</button>
+      </div>
+
+      <!-- Chat Prompt Input Row (Hooks: #chatInput, #chatSendBtn) -->
+      <div class="ai-input-row">
+        <input type="text" id="chatInput" placeholder="Ask your AI tutor a question..." aria-label="AI Tutor Question">
+        <button class="ai-send-btn" id="chatSendBtn" type="button" aria-label="Send Message" title="Send">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Finish Your Profile Card (Preserved Core Content & Hooks) -->
+    <section class="card">
+      <div class="card-header-bar">
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 10"></polyline></svg>
+          Finish your profile
+        </h2>
+        <span class="badge {% if percent == 100 %}badge-active{% else %}badge-pending{% endif %}">{{ percent }}%</span>
+      </div>
+      <progress value="{{ percent }}" max="100" aria-label="Profile completion">{{ percent }}%</progress>
+      {% if missing %}
+        <p style="margin-top: 0.85rem; font-weight: 600; font-size: 0.875rem;">Still to add:</p>
+        <ul style="padding-left: 1.2rem; margin: 0.35rem 0 1rem; color: var(--text-secondary); font-size: 0.85rem;">
+          {% for item in missing %}<li>{{ item }}</li>{% endfor %}
+        </ul>
+        <a class="btn primary" href="{% url 'student_profile' %}" style="width: 100%;">Complete profile</a>
+      {% else %}
+        <p style="margin-top: 0.85rem; color: #059669; font-weight: 600;">Your student profile is 100% complete.</p>
+      {% endif %}
+    </section>
+
+    <!-- Preserved "Not available yet" card styled gracefully -->
+    <section class="card muted">
+      <h2>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        Planned Features
+      </h2>
+      <ul style="font-size: 0.825rem;">
+        <li>Automated coding evaluation engine</li>
+        <li>Peer study groups and real-time collaboration</li>
+        <li>Automated gradebook exports and transcript sync</li>
+      </ul>
+    </section>
+
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,880 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Platform Analytics & Intelligence · Administration{% endblock %}
+
+{% block content %}
+<div class="page-container" style="max-width: 1280px; margin: 0 auto; padding: 1.5rem 1rem;">
+
+  <!-- Header & Export Actions -->
+  <div class="analytics-header-container">
+    <div>
+      <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+        <span class="admin-badge-pill" style="background: var(--primary-light); color: var(--primary);">Institutional Intelligence</span>
+        <span class="role-chip">System Administrator</span>
+      </div>
+      <h1 style="margin: 0; font-size: 1.75rem; font-weight: 800; letter-spacing: -0.02em;">Platform Analytics & Intelligence</h1>
+      <p style="margin: 0.25rem 0 0; color: var(--text-muted); font-size: 0.875rem;">Real-time telemetry, demographic distributions, and academic trend visualizations across the institution.</p>
+    </div>
+
+    <!-- Quick Export Dropdown / Buttons -->
+    <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+      <a class="btn small" href="{% url 'admin_export_csv' 'students' %}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Export Students
+      </a>
+      <a class="btn small" href="{% url 'admin_export_csv' 'assessments' %}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Export Assessments
+      </a>
+      <a class="btn small" href="{% url 'admin_export_csv' 'scholarships' %}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Export Scholarships
+      </a>
+    </div>
+  </div>
+
+  <!-- Primary Section Navigation Tabs -->
+  <div style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-subtle); display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.25rem;">
+    <button type="button" class="analytics-segment-btn active" id="tabNavOverview" onclick="switchAdminSection('overview')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+      Overview
+    </button>
+    <button type="button" class="analytics-segment-btn" id="tabNavStudents" onclick="switchAdminSection('students')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+      Student Analytics
+    </button>
+    <button type="button" class="analytics-segment-btn" id="tabNavTeachers" onclick="switchAdminSection('teachers')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+      Teacher Analytics
+    </button>
+    <button type="button" class="analytics-segment-btn" id="tabNavPerformance" onclick="switchAdminSection('performance')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+      Academic Performance
+    </button>
+    <button type="button" class="analytics-segment-btn" id="tabNavActivity" onclick="switchAdminSection('activity')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+      Learning Activity
+    </button>
+    <button type="button" class="analytics-segment-btn" id="tabNavReports" onclick="switchAdminSection('reports')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+      Reports & Audits
+    </button>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 1. INSTITUTION-WIDE OVERVIEW SECTION                                      -->
+  <!-- ========================================================================= -->
+  <div id="sectionOverview" class="analytics-section-pane active">
+
+    <!-- Overview Metric Cards (Global Count-Up Animations) -->
+    <div class="analytics-metric-grid">
+      <div class="analytics-metric-card">
+        <div class="analytics-metric-card-label">Total Students</div>
+        <div class="analytics-metric-card-val" data-color="primary" id="adminStatStudents" data-countup data-countup-target="{{ overview.metrics.total_students }}">
+          {{ overview.metrics.total_students }}
+        </div>
+        <div class="analytics-metric-card-sub">{{ overview.metrics.active_students }} Active · {{ overview.metrics.suspended_students }} Suspended</div>
+      </div>
+
+      <div class="analytics-metric-card">
+        <div class="analytics-metric-card-label">Total Teachers</div>
+        <div class="analytics-metric-card-val" data-color="purple" id="adminStatTeachers" data-countup data-countup-target="{{ overview.metrics.total_teachers }}">
+          {{ overview.metrics.total_teachers }}
+        </div>
+        <div class="analytics-metric-card-sub">{{ overview.metrics.active_teachers }} Active Faculty</div>
+      </div>
+
+      <div class="analytics-metric-card">
+        <div class="analytics-metric-card-label">Assessments & Quizzes</div>
+        <div class="analytics-metric-card-val" data-color="info" id="adminStatAssessments" data-countup data-countup-target="{{ overview.metrics.total_assessments }}">
+          {{ overview.metrics.total_assessments }}
+        </div>
+        <div class="analytics-metric-card-sub">{{ overview.metrics.total_attempts }} total submissions</div>
+      </div>
+
+      <div class="analytics-metric-card">
+        <div class="analytics-metric-card-label">Average Score</div>
+        <div class="analytics-metric-card-val" data-color="success" id="adminStatAvg" data-countup data-countup-target="{{ overview.metrics.avg_score }}" data-countup-decimals="1" data-countup-suffix=" / 100">
+          {{ overview.metrics.avg_score }} / 100
+        </div>
+        <div class="analytics-metric-card-sub">Institution-wide quiz avg</div>
+      </div>
+
+      <div class="analytics-metric-card">
+        <div class="analytics-metric-card-label">Learning Resources</div>
+        <div class="analytics-metric-card-val" data-color="warning" id="adminStatResources" data-countup data-countup-target="{{ overview.metrics.total_resources }}">
+          {{ overview.metrics.total_resources }}
+        </div>
+        <div class="analytics-metric-card-sub">Notes, labs, and links</div>
+      </div>
+
+      <div class="analytics-metric-card">
+        <div class="analytics-metric-card-label">Batch Attendance</div>
+        <div class="analytics-metric-card-val" style="color: var(--text-muted); font-size: 1.5rem;" id="adminStatAttendance">
+          {{ overview.metrics.attendance_percentage }}
+        </div>
+        <div class="analytics-metric-card-sub" title="{{ overview.metrics.attendance_note }}">{{ overview.metrics.attendance_note|truncatechars:28 }}</div>
+      </div>
+    </div>
+
+    <!-- Charts Grid 1: Branch Distribution & Platform Velocity -->
+    <div class="grid grid-2" style="margin-bottom: 1.5rem;">
+      <div class="analytics-chart-panel">
+        <div class="analytics-chart-panel-header">
+          <h3 class="analytics-chart-panel-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a10 10 0 0 1 10 10h-10z"></path></svg>
+            Academic Branch Distribution (Donut Chart)
+          </h3>
+          <span class="badge badge-active">Active Enrollments</span>
+        </div>
+        <div id="adminBranchDonutContainer" style="min-height: 180px;"></div>
+      </div>
+
+      <div class="analytics-chart-panel">
+        <div class="analytics-chart-panel-header">
+          <h3 class="analytics-chart-panel-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline></svg>
+            Platform Activity Velocity (Line Graph)
+          </h3>
+          <span class="badge badge-info">30-Day Submissions</span>
+        </div>
+        <div id="adminVelocityLineChartContainer" style="min-height: 180px;"></div>
+      </div>
+    </div>
+
+    <!-- Charts Grid 2: Semester Enrollment Distribution -->
+    <div class="analytics-chart-panel" style="margin-bottom: 1.5rem;">
+      <div class="analytics-chart-panel-header">
+        <h3 class="analytics-chart-panel-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+          Student Enrollment by Semester (Bar Chart)
+        </h3>
+        <span class="badge badge-active">Semesters 1 to 8</span>
+      </div>
+      <div id="adminSemesterBarChartContainer" style="min-height: 180px;"></div>
+    </div>
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 2. STUDENT ANALYTICS (ALL STUDENTS + SEARCH BY STUDENT ID)                -->
+  <!-- ========================================================================= -->
+  <div id="sectionStudents" class="analytics-section-pane">
+
+    <!-- Search & Sub-nav Bar -->
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; background: var(--surface-card); padding: 1rem 1.25rem; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle);">
+      <div style="display: flex; gap: 0.5rem;">
+        <button type="button" class="btn small primary" id="adminBtnAllStudents" onclick="setAdminStudentSub('all')">
+          All Students (Institution-wide)
+        </button>
+        <button type="button" class="btn small" id="adminBtnSearchStudent" onclick="document.getElementById('adminStudentIdInput').focus()">
+          Search by Student ID
+        </button>
+      </div>
+
+      <form id="adminStudentSearchForm" class="analytics-search-form" style="margin: 0;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--text-muted); margin-right: 0.4rem;">
+          <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="adminStudentIdInput" class="analytics-search-input" placeholder="Enter Student ID (e.g. S1001)" required>
+        <button type="submit" class="btn primary small" style="padding: 0.35rem 0.85rem; border-radius: var(--radius-pill);">
+          Search
+        </button>
+      </form>
+    </div>
+
+    <!-- Error Alert for Student Search -->
+    <div id="adminStudentSearchAlert" class="notice alert" style="display: none; margin-bottom: 1.5rem;">
+      <span id="adminStudentSearchAlertText"></span>
+    </div>
+
+    <!-- SUB-VIEW: INDIVIDUAL STUDENT DIAGNOSTIC -->
+    <div id="adminIndividualStudentView" style="display: none; margin-bottom: 1.5rem;"></div>
+
+    <!-- SUB-VIEW: ALL STUDENTS AGGREGATE -->
+    <div id="adminAllStudentsView">
+      <div class="analytics-metric-grid">
+        <div class="analytics-metric-card">
+          <div class="analytics-metric-card-label">Total Students</div>
+          <div class="analytics-metric-card-val" data-color="primary" data-countup data-countup-target="{{ all_students.total_students }}">
+            {{ all_students.total_students }}
+          </div>
+          <div class="analytics-metric-card-sub">Institution-wide</div>
+        </div>
+
+        <div class="analytics-metric-card">
+          <div class="analytics-metric-card-label">Overall Average</div>
+          <div class="analytics-metric-card-val" data-color="success" data-countup data-countup-target="{{ all_students.overall_average_score }}" data-countup-decimals="1" data-countup-suffix=" / 100">
+            {{ all_students.overall_average_score }} / 100
+          </div>
+          <div class="analytics-metric-card-sub">All completed attempts</div>
+        </div>
+
+        <div class="analytics-metric-card">
+          <div class="analytics-metric-card-label">High Performers</div>
+          <div class="analytics-metric-card-val" data-color="purple" data-countup data-countup-target="{{ all_students.high_performers_count }}">
+            {{ all_students.high_performers_count }}
+          </div>
+          <div class="analytics-metric-card-sub">≥80% evaluation score</div>
+        </div>
+
+        <div class="analytics-metric-card">
+          <div class="analytics-metric-card-label">Students Flagged</div>
+          <div class="analytics-metric-card-val" data-color="warning" data-countup data-countup-target="{{ all_students.students_needing_support|length }}">
+            {{ all_students.students_needing_support|length }}
+          </div>
+          <div class="analytics-metric-card-sub">&lt;50% score threshold</div>
+        </div>
+      </div>
+
+      <div class="grid grid-2" style="margin-bottom: 1.5rem;">
+        <div class="analytics-chart-panel">
+          <div class="analytics-chart-panel-header">
+            <h3 class="analytics-chart-panel-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 10"></polyline></svg>
+              Academic Tier Distribution (Donut Chart)
+            </h3>
+            <span class="badge badge-active">Actual Results</span>
+          </div>
+          <div id="adminStudentTierDonutContainer" style="min-height: 180px;"></div>
+        </div>
+
+        <div class="analytics-chart-panel">
+          <div class="analytics-chart-panel-header">
+            <h3 class="analytics-chart-panel-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+              Branch Score Comparisons (Bar Chart)
+            </h3>
+            <span class="badge badge-info">Average Marks</span>
+          </div>
+          <div id="adminStudentBranchBarContainer" style="min-height: 180px;"></div>
+        </div>
+      </div>
+
+      <!-- Students Flagged Table -->
+      <div class="analytics-chart-panel">
+        <div class="analytics-chart-panel-header">
+          <h3 class="analytics-chart-panel-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            Students Requiring Academic Attention (&lt;50% Average)
+          </h3>
+          <span class="badge badge-alert">{{ all_students.students_needing_support|length }} Students Flagged</span>
+        </div>
+        <div style="overflow-x: auto;">
+          <table class="table-compact" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+            <thead>
+              <tr style="border-bottom: 2px solid var(--border-subtle); text-align: left; color: var(--text-muted);">
+                <th style="padding: 0.75rem 0.5rem;">Student ID</th>
+                <th style="padding: 0.75rem 0.5rem;">Full Name</th>
+                <th style="padding: 0.75rem 0.5rem;">Branch</th>
+                <th style="padding: 0.75rem 0.5rem;">Semester</th>
+                <th style="padding: 0.75rem 0.5rem;">Attempts</th>
+                <th style="padding: 0.75rem 0.5rem;">Score Average</th>
+                <th style="padding: 0.75rem 0.5rem;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for s in all_students.students_needing_support %}
+              <tr style="border-bottom: 1px solid var(--border-subtle);">
+                <td style="padding: 0.75rem 0.5rem;"><strong class="mono">{{ s.public_id }}</strong></td>
+                <td style="padding: 0.75rem 0.5rem;">{{ s.name }}</td>
+                <td style="padding: 0.75rem 0.5rem;"><span class="role-chip">{{ s.branch }}</span></td>
+                <td style="padding: 0.75rem 0.5rem;">Sem {{ s.semester }}</td>
+                <td style="padding: 0.75rem 0.5rem;"><span class="mono">{{ s.attempts_count }}</span></td>
+                <td style="padding: 0.75rem 0.5rem;"><strong style="color: #DC2626;">{{ s.avg_score }} / 100</strong></td>
+                <td style="padding: 0.75rem 0.5rem;">
+                  <button type="button" class="btn small" onclick="inspectAdminStudent('{{ s.public_id }}')">Inspect Diagnostics ↗</button>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="7" class="text-muted text-center p-3">No students flagged for academic intervention. Outstanding platform-wide performance!</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 3. TEACHER ANALYTICS (ALL TEACHERS + SEARCH BY TEACHER ID)                -->
+  <!-- ========================================================================= -->
+  <div id="sectionTeachers" class="analytics-section-pane">
+
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; background: var(--surface-card); padding: 1rem 1.25rem; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle);">
+      <div style="display: flex; gap: 0.5rem;">
+        <button type="button" class="btn small primary" id="adminBtnAllTeachers" onclick="setAdminTeacherSub('all')">
+          All Faculty (Institution-wide)
+        </button>
+        <button type="button" class="btn small" id="adminBtnSearchTeacher" onclick="document.getElementById('adminTeacherIdInput').focus()">
+          Search by Teacher ID
+        </button>
+      </div>
+
+      <form id="adminTeacherSearchForm" class="analytics-search-form" style="margin: 0;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--text-muted); margin-right: 0.4rem;">
+          <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="adminTeacherIdInput" class="analytics-search-input" placeholder="Enter Teacher ID (e.g. T1001)" required>
+        <button type="submit" class="btn primary small" style="padding: 0.35rem 0.85rem; border-radius: var(--radius-pill);">
+          Search
+        </button>
+      </form>
+    </div>
+
+    <!-- Error Alert for Teacher Search -->
+    <div id="adminTeacherSearchAlert" class="notice alert" style="display: none; margin-bottom: 1.5rem;">
+      <span id="adminTeacherSearchAlertText"></span>
+    </div>
+
+    <!-- SUB-VIEW: INDIVIDUAL TEACHER DIAGNOSTIC -->
+    <div id="adminIndividualTeacherView" style="display: none; margin-bottom: 1.5rem;"></div>
+
+    <!-- SUB-VIEW: ALL TEACHERS DIRECTORY & WORKLOAD TABLE -->
+    <div id="adminAllTeachersView">
+      <div class="analytics-chart-panel">
+        <div class="analytics-chart-panel-header">
+          <h3 class="analytics-chart-panel-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            Faculty Activity & Teaching Workload Distribution
+          </h3>
+          <span class="text-muted" style="font-size: 0.8rem;">{{ all_teachers.total_teachers }} Registered Instructors</span>
+        </div>
+        <div style="overflow-x: auto;">
+          <table class="table-compact" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+            <thead>
+              <tr style="border-bottom: 2px solid var(--border-subtle); text-align: left; color: var(--text-muted);">
+                <th style="padding: 0.75rem 0.5rem;">Teacher ID</th>
+                <th style="padding: 0.75rem 0.5rem;">Full Name</th>
+                <th style="padding: 0.75rem 0.5rem;">Department</th>
+                <th style="padding: 0.75rem 0.5rem;">Designation</th>
+                <th style="padding: 0.75rem 0.5rem;">Tests Created</th>
+                <th style="padding: 0.75rem 0.5rem;">Submissions</th>
+                <th style="padding: 0.75rem 0.5rem;">Student Avg</th>
+                <th style="padding: 0.75rem 0.5rem;">Live Classes</th>
+                <th style="padding: 0.75rem 0.5rem;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for t in all_teachers.teachers %}
+              <tr style="border-bottom: 1px solid var(--border-subtle);">
+                <td style="padding: 0.75rem 0.5rem;"><strong class="mono">{{ t.public_id }}</strong></td>
+                <td style="padding: 0.75rem 0.5rem;">{{ t.full_name }}</td>
+                <td style="padding: 0.75rem 0.5rem;"><span class="role-chip">{{ t.department }}</span></td>
+                <td style="padding: 0.75rem 0.5rem;">{{ t.designation }}</td>
+                <td style="padding: 0.75rem 0.5rem;"><span class="mono">{{ t.assessments_created }}</span></td>
+                <td style="padding: 0.75rem 0.5rem;"><span class="mono">{{ t.submissions_received }}</span></td>
+                <td style="padding: 0.75rem 0.5rem;">
+                  <strong style="color: {% if t.student_avg_score >= 70 %}#059669{% elif t.student_avg_score >= 50 %}#D97706{% else %}#DC2626{% endif %};">
+                    {{ t.student_avg_score }} / 100
+                  </strong>
+                </td>
+                <td style="padding: 0.75rem 0.5rem;"><span class="mono">{{ t.meetings_hosted }}</span></td>
+                <td style="padding: 0.75rem 0.5rem;">
+                  <button type="button" class="btn small" onclick="inspectAdminTeacher('{{ t.public_id }}')">View Teaching ↗</button>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="9" class="text-muted text-center p-3">No teacher records registered yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 4. ACADEMIC PERFORMANCE SECTION                                           -->
+  <!-- ========================================================================= -->
+  <div id="sectionPerformance" class="analytics-section-pane">
+    <div class="analytics-chart-panel">
+      <div class="analytics-chart-panel-header">
+        <h3 class="analytics-chart-panel-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+          Academic Assessment Performance & Evaluation Standards
+        </h3>
+        <span class="badge badge-active">Actual Evaluation Records</span>
+      </div>
+      <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0;">Comprehensive breakdown of evaluations across branches, passing criteria (≥50%), and score distributions.</p>
+      
+      <div class="grid grid-2" style="margin-top: 1rem;">
+        <div>
+          <h4 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 0.5rem;">Evaluation Integrity Parameters</h4>
+          <ul style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; padding-left: 1.25rem;">
+            <li>Anti-cheating tab monitor: Automated submission triggers after 3 violations</li>
+            <li>Scoring algorithm: Server-authoritative JSON answer evaluation</li>
+            <li>Negative marking: Configured individually by faculty per assessment</li>
+            <li>Exclusivity enforcement: Strict single submission locks for official tests</li>
+          </ul>
+        </div>
+        <div>
+          <h4 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 0.5rem;">Institution-wide Scoring Health</h4>
+          <div style="display: flex; flex-direction: column; gap: 0.65rem; font-size: 0.85rem;">
+            <div style="display: flex; justify-content: space-between;">
+              <span>Total Attempts Recorded:</span>
+              <strong>{{ overview.metrics.total_attempts }}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span>Institution Mean Score:</span>
+              <strong style="color: #059669;">{{ overview.metrics.avg_score }} / 100</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span>Active Question Banks:</span>
+              <strong>{{ overview.metrics.total_assessments }}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 5. LEARNING ACTIVITY SECTION                                              -->
+  <!-- ========================================================================= -->
+  <div id="sectionActivity" class="analytics-section-pane">
+    <div class="analytics-chart-panel">
+      <div class="analytics-chart-panel-header">
+        <h3 class="analytics-chart-panel-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          Platform Engagement & Telemetry Analytics
+        </h3>
+        <span class="badge badge-info">Audit Trail Telemetry</span>
+      </div>
+      <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0;">Aggregated activity records from logins, evaluations, resources, and live lecture rooms.</p>
+      
+      <div class="analytics-metric-grid" style="margin-top: 1rem;">
+        <div class="analytics-metric-card">
+          <div class="analytics-metric-card-label">Total Audit Events</div>
+          <div class="analytics-metric-card-val" data-color="primary" data-countup data-countup-target="{{ overview.metrics.total_audit_events }}">
+            {{ overview.metrics.total_audit_events }}
+          </div>
+          <div class="analytics-metric-card-sub">Append-only security logs</div>
+        </div>
+
+        <div class="analytics-metric-card">
+          <div class="analytics-metric-card-label">Live Meetings</div>
+          <div class="analytics-metric-card-val" data-color="info" data-countup data-countup-target="{{ overview.metrics.total_meetings }}">
+            {{ overview.metrics.total_meetings }}
+          </div>
+          <div class="analytics-metric-card-sub">Classes & doubt clearing</div>
+        </div>
+
+        <div class="analytics-metric-card">
+          <div class="analytics-metric-card-label">Notifications Sent</div>
+          <div class="analytics-metric-card-val" data-color="purple" data-countup data-countup-target="{{ overview.metrics.total_notifications }}">
+            {{ overview.metrics.total_notifications }}
+          </div>
+          <div class="analytics-metric-card-sub">Realtime notification logs</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 6. REPORTS & AUDITS SECTION                                               -->
+  <!-- ========================================================================= -->
+  <div id="sectionReports" class="analytics-section-pane">
+    <div class="analytics-chart-panel">
+      <div class="analytics-chart-panel-header">
+        <h3 class="analytics-chart-panel-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+          Export Official Institutional Reports
+        </h3>
+      </div>
+      <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0;">Download certified, server-generated CSV reports containing accurate database records for accreditation, reporting, and faculty reviews.</p>
+      
+      <div class="grid grid-2" style="margin-top: 1rem; gap: 1rem;">
+        <div style="border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.15rem; background: var(--bg-canvas);">
+          <strong style="font-size: 0.95rem;">Student Demographics & Academic Status</strong>
+          <p style="font-size: 0.825rem; color: var(--text-secondary); margin: 0.35rem 0 0.85rem;">Complete registry of student IDs, branches, semesters, active/suspended status, and join dates.</p>
+          <a class="btn primary small" href="{% url 'admin_export_csv' 'students' %}">Download Students CSV ↗</a>
+        </div>
+
+        <div style="border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.15rem; background: var(--bg-canvas);">
+          <strong style="font-size: 0.95rem;">Assessment & Evaluation Records</strong>
+          <p style="font-size: 0.825rem; color: var(--text-secondary); margin: 0.35rem 0 0.85rem;">All published daily MCQs and weekly tests, authoring faculty, target branches, and attempt counts.</p>
+          <a class="btn primary small" href="{% url 'admin_export_csv' 'assessments' %}">Download Assessments CSV ↗</a>
+        </div>
+
+        <div style="border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.15rem; background: var(--bg-canvas);">
+          <strong style="font-size: 0.95rem;">Faculty Staff Registry</strong>
+          <p style="font-size: 0.825rem; color: var(--text-secondary); margin: 0.35rem 0 0.85rem;">Instructor directory, designations, assigned engineering departments, and account states.</p>
+          <a class="btn primary small" href="{% url 'admin_export_csv' 'teachers' %}">Download Teachers CSV ↗</a>
+        </div>
+
+        <div style="border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.15rem; background: var(--bg-canvas);">
+          <strong style="font-size: 0.95rem;">Scholarship Governance Ledger</strong>
+          <p style="font-size: 0.825rem; color: var(--text-secondary); margin: 0.35rem 0 0.85rem;">Accredited financial aids, provider bodies, deadlines, and branch qualification criteria.</p>
+          <a class="btn primary small" href="{% url 'admin_export_csv' 'scholarships' %}">Download Scholarships CSV ↗</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  // Preloaded Server Data
+  const branchData = {{ overview.branch_data|safe }};
+  const semData = {{ overview.sem_data|safe }};
+  const velocityData = {{ overview.trends|safe }};
+  const allStudentsData = {{ all_students|safe }};
+
+  function renderAdminOverviewCharts() {
+    if (!window.EduBridgeCharts) return;
+
+    // 1. Branch Distribution Donut
+    const branchContainer = document.getElementById('adminBranchDonutContainer');
+    if (branchContainer && branchData.length > 0) {
+      EduBridgeCharts.renderDonutChart(branchContainer, branchData.map(b => ({
+        label: b.code,
+        value: b.count
+      })), {
+        centerText: '{{ overview.metrics.total_students }}',
+        centerLabel: 'Students',
+        emptyMessage: 'No students enrolled across branches'
+      });
+    }
+
+    // 2. Velocity Line Chart
+    const velocityContainer = document.getElementById('adminVelocityLineChartContainer');
+    if (velocityContainer && velocityData) {
+      EduBridgeCharts.renderLineChart(velocityContainer, {
+        labels: velocityData.labels,
+        values: velocityData.attempts
+      }, {
+        strokeColor: '#3B82F6',
+        fillColor: 'rgba(59, 130, 246, 0.12)',
+        unit: 'Attempts',
+        emptyMessage: 'No attempts recorded in this timeframe'
+      });
+    }
+
+    // 3. Semester Enrollment Bar Chart
+    const semContainer = document.getElementById('adminSemesterBarChartContainer');
+    if (semContainer && semData.length > 0) {
+      EduBridgeCharts.renderBarChart(semContainer, {
+        labels: semData.map(s => 'Sem ' + s.semester),
+        values: semData.map(s => s.count)
+      }, {
+        color: '#6366F1',
+        unit: 'Students',
+        emptyMessage: 'No semester student enrollment'
+      });
+    }
+  }
+
+  function renderAdminStudentCharts() {
+    if (!window.EduBridgeCharts) return;
+
+    // 1. Student Tier Donut
+    const tierContainer = document.getElementById('adminStudentTierDonutContainer');
+    if (tierContainer) {
+      EduBridgeCharts.renderDonutChart(tierContainer, [
+        { label: 'High (≥80%)', value: allStudentsData.high_performers_count || 0, color: '#10B981' },
+        { label: 'Good (60-79%)', value: allStudentsData.mid_performers_count || 0, color: '#3B82F6' },
+        { label: 'Average (40-59%)', value: allStudentsData.avg_performers_count || 0, color: '#F59E0B' },
+        { label: 'Support (<40%)', value: allStudentsData.low_performers_count || 0, color: '#EF4444' }
+      ], {
+        centerText: String(allStudentsData.total_students || 0),
+        centerLabel: 'Students',
+        emptyMessage: 'No evaluations recorded for students'
+      });
+    }
+
+    // 2. Branch Score Bar Chart
+    const branchScoreContainer = document.getElementById('adminStudentBranchBarContainer');
+    if (branchScoreContainer && allStudentsData.branch_comparison) {
+      EduBridgeCharts.renderBarChart(branchScoreContainer, {
+        labels: allStudentsData.branch_comparison.map(b => b.branch),
+        values: allStudentsData.branch_comparison.map(b => b.average_score)
+      }, {
+        color: '#10B981',
+        unit: 'Marks',
+        maxVal: 100,
+        emptyMessage: 'No branch attempts found'
+      });
+    }
+  }
+
+  // Initial render
+  renderAdminOverviewCharts();
+
+  // Section Switcher
+  window.switchAdminSection = function (sectionKey) {
+    const tabs = ['overview', 'students', 'teachers', 'performance', 'activity', 'reports'];
+    tabs.forEach(t => {
+      const btn = document.getElementById('tabNav' + t.charAt(0).toUpperCase() + t.slice(1));
+      const pane = document.getElementById('section' + t.charAt(0).toUpperCase() + t.slice(1));
+      if (btn) btn.classList.remove('active');
+      if (pane) pane.classList.remove('active');
+    });
+
+    const activeBtn = document.getElementById('tabNav' + sectionKey.charAt(0).toUpperCase() + sectionKey.slice(1));
+    const activePane = document.getElementById('section' + sectionKey.charAt(0).toUpperCase() + sectionKey.slice(1));
+    if (activeBtn) activeBtn.classList.add('active');
+    if (activePane) activePane.classList.add('active');
+
+    // Trigger CountUp animations for the newly active pane
+    if (window.EduBridgeCountUp) EduBridgeCountUp.animateAll(activePane);
+
+    if (sectionKey === 'overview') {
+      renderAdminOverviewCharts();
+    } else if (sectionKey === 'students') {
+      renderAdminStudentCharts();
+    }
+  };
+
+  // Student Sub-view Switcher
+  window.setAdminStudentSub = function (mode) {
+    const viewAll = document.getElementById('adminAllStudentsView');
+    const viewInd = document.getElementById('adminIndividualStudentView');
+    const btnAll = document.getElementById('adminBtnAllStudents');
+    const btnSearch = document.getElementById('adminBtnSearchStudent');
+    const alertBox = document.getElementById('adminStudentSearchAlert');
+
+    alertBox.style.display = 'none';
+    if (mode === 'all') {
+      btnAll.classList.add('primary');
+      btnSearch.classList.remove('primary');
+      viewAll.style.display = 'block';
+      viewInd.style.display = 'none';
+      renderAdminStudentCharts();
+      if (window.EduBridgeCountUp) EduBridgeCountUp.animateAll(viewAll);
+    }
+  };
+
+  // Student Search
+  const studentSearchForm = document.getElementById('adminStudentSearchForm');
+  const studentIdInput = document.getElementById('adminStudentIdInput');
+  const studentSearchAlert = document.getElementById('adminStudentSearchAlert');
+  const studentSearchAlertText = document.getElementById('adminStudentSearchAlertText');
+  const indStudentView = document.getElementById('adminIndividualStudentView');
+  const allStudentsView = document.getElementById('adminAllStudentsView');
+
+  window.inspectAdminStudent = function (studentId) {
+    studentIdInput.value = studentId;
+    performAdminStudentSearch(studentId);
+  };
+
+  function performAdminStudentSearch(studentId) {
+    studentSearchAlert.style.display = 'none';
+
+    fetch(`/api/admin/analytics/?section=students&sub=individual&student_id=${encodeURIComponent(studentId)}`)
+      .then(res => res.json().then(data => ({ status: res.status, body: data })))
+      .then(({ status, body }) => {
+        if (status !== 200 || body.status === 'error') {
+          studentSearchAlertText.textContent = body.message || 'Student not found in institutional records.';
+          studentSearchAlert.style.display = 'block';
+          indStudentView.style.display = 'none';
+          allStudentsView.style.display = 'block';
+          return;
+        }
+
+        const data = body.data;
+        const sAnalytics = data.analytics;
+        allStudentsView.style.display = 'none';
+        indStudentView.style.display = 'block';
+
+        indStudentView.innerHTML = `
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; background: #EFF6FF; padding: 0.85rem 1.25rem; border-radius: var(--radius-md); border: 1px solid rgba(59, 130, 246, 0.2);">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: #FFF; display: flex; align-items: center; justify-content: center; font-weight: 700;">
+                ${(data.student_name || 'S').slice(0, 1).toUpperCase()}
+              </div>
+              <div>
+                <div style="font-weight: 800; font-size: 1rem; color: var(--text-main);">${data.student_name}</div>
+                <div style="font-size: 0.785rem; color: var(--text-muted);">ID: <strong>${data.student_id}</strong> · Status: <span class="badge badge-active">${data.status}</span> · Joined: ${data.date_joined}</div>
+              </div>
+            </div>
+            <button class="btn small" type="button" onclick="setAdminStudentSub('all')">← Back to All Students</button>
+          </div>
+
+          <div class="analytics-metric-grid">
+            <div class="analytics-metric-card">
+              <div class="analytics-metric-card-label">Average Score</div>
+              <div class="analytics-metric-card-val" data-color="primary" data-countup data-countup-target="${sAnalytics.overview.average_marks}" data-countup-decimals="1" data-countup-suffix=" / 100">
+                ${sAnalytics.overview.average_marks} / 100
+              </div>
+              <div class="analytics-metric-card-sub">Grade: ${sAnalytics.overview.grade} · GPA: ${sAnalytics.overview.gpa}</div>
+            </div>
+
+            <div class="analytics-metric-card">
+              <div class="analytics-metric-card-label">Completion Rate</div>
+              <div class="analytics-metric-card-val" data-color="success" data-countup data-countup-target="${sAnalytics.overview.completion_percentage}" data-countup-suffix="%" data-countup-decimals="1">
+                ${sAnalytics.overview.completion_percentage}%
+              </div>
+              <div class="analytics-metric-card-sub">${sAnalytics.overview.completed_assignments} tasks evaluated</div>
+            </div>
+
+            <div class="analytics-metric-card">
+              <div class="analytics-metric-card-label">Active Learning Time</div>
+              <div class="analytics-metric-card-val" data-color="purple" data-countup data-countup-target="${sAnalytics.overview.total_learning_hours}" data-countup-suffix="h" data-countup-decimals="1">
+                ${sAnalytics.overview.total_learning_hours}h
+              </div>
+              <div class="analytics-metric-card-sub">Verified test duration</div>
+            </div>
+
+            <div class="analytics-metric-card">
+              <div class="analytics-metric-card-label">Attendance</div>
+              <div class="analytics-metric-card-val" style="color: var(--text-muted); font-size: 1.5rem;">
+                ${sAnalytics.overview.attendance_percentage}
+              </div>
+              <div class="analytics-metric-card-sub">${sAnalytics.overview.attendance_note}</div>
+            </div>
+          </div>
+
+          <div class="analytics-chart-panel" style="margin-bottom: 1.5rem;">
+            <div class="analytics-chart-panel-header">
+              <h3 class="analytics-chart-panel-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline></svg>
+                Evaluation Score History (Line Graph)
+              </h3>
+              <span class="badge badge-active">Actual Quiz Records</span>
+            </div>
+            <div id="adminIndividualStudentChartContainer" style="min-height: 180px;"></div>
+          </div>
+        `;
+
+        if (window.EduBridgeCountUp) EduBridgeCountUp.animateAll(indStudentView);
+
+        const chartBox = document.getElementById('adminIndividualStudentChartContainer');
+        if (chartBox && window.EduBridgeCharts) {
+          EduBridgeCharts.renderLineChart(chartBox, {
+            labels: sAnalytics.trends.labels,
+            values: sAnalytics.trends.scores
+          }, {
+            strokeColor: '#3B82F6',
+            fillColor: 'rgba(59, 130, 246, 0.12)',
+            unit: 'Marks',
+            emptyMessage: 'No completed quiz attempts recorded for this student'
+          });
+        }
+      })
+      .catch(err => {
+        studentSearchAlertText.textContent = 'Error querying student record.';
+        studentSearchAlert.style.display = 'block';
+      });
+  }
+
+  studentSearchForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const sid = studentIdInput.value.trim();
+    if (sid) performAdminStudentSearch(sid);
+  });
+
+  // Teacher Search
+  const teacherSearchForm = document.getElementById('adminTeacherSearchForm');
+  const teacherIdInput = document.getElementById('adminTeacherIdInput');
+  const teacherSearchAlert = document.getElementById('adminTeacherSearchAlert');
+  const teacherSearchAlertText = document.getElementById('adminTeacherSearchAlertText');
+  const indTeacherView = document.getElementById('adminIndividualTeacherView');
+  const allTeachersView = document.getElementById('adminAllTeachersView');
+
+  window.setAdminTeacherSub = function (mode) {
+    teacherSearchAlert.style.display = 'none';
+    if (mode === 'all') {
+      document.getElementById('adminBtnAllTeachers').classList.add('primary');
+      document.getElementById('adminBtnSearchTeacher').classList.remove('primary');
+      allTeachersView.style.display = 'block';
+      indTeacherView.style.display = 'none';
+      if (window.EduBridgeCountUp) EduBridgeCountUp.animateAll(allTeachersView);
+    }
+  };
+
+  window.inspectAdminTeacher = function (teacherId) {
+    teacherIdInput.value = teacherId;
+    performAdminTeacherSearch(teacherId);
+  };
+
+  function performAdminTeacherSearch(teacherId) {
+    teacherSearchAlert.style.display = 'none';
+
+    fetch(`/api/admin/analytics/?section=teachers&sub=individual&teacher_id=${encodeURIComponent(teacherId)}`)
+      .then(res => res.json().then(data => ({ status: res.status, body: data })))
+      .then(({ status, body }) => {
+        if (status !== 200 || body.status === 'error') {
+          teacherSearchAlertText.textContent = body.message || 'Teacher not found in institutional records.';
+          teacherSearchAlert.style.display = 'block';
+          indTeacherView.style.display = 'none';
+          allTeachersView.style.display = 'block';
+          return;
+        }
+
+        const data = body.data;
+        const tAnalytics = data.analytics;
+        allTeachersView.style.display = 'none';
+        indTeacherView.style.display = 'block';
+
+        indTeacherView.innerHTML = `
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; background: #EEF2FF; padding: 0.85rem 1.25rem; border-radius: var(--radius-md); border: 1px solid rgba(99, 102, 241, 0.2);">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <div style="width: 36px; height: 36px; border-radius: 50%; background: #6366F1; color: #FFF; display: flex; align-items: center; justify-content: center; font-weight: 700;">
+                ${(data.teacher_name || 'T').slice(0, 1).toUpperCase()}
+              </div>
+              <div>
+                <div style="font-weight: 800; font-size: 1rem; color: var(--text-main);">${data.teacher_name}</div>
+                <div style="font-size: 0.785rem; color: var(--text-muted);">ID: <strong>${data.teacher_id}</strong> · Dept: ${tAnalytics.teacher.department} · Status: <span class="badge badge-active">${data.status}</span></div>
+              </div>
+            </div>
+            <button class="btn small" type="button" onclick="setAdminTeacherSub('all')">← Back to All Faculty</button>
+          </div>
+
+          <div class="analytics-metric-grid">
+            <div class="analytics-metric-card">
+              <div class="analytics-metric-card-label">Assigned Classes</div>
+              <div class="analytics-metric-card-val" data-color="primary" data-countup data-countup-target="${tAnalytics.overview.total_assigned_classes}">
+                ${tAnalytics.overview.total_assigned_classes}
+              </div>
+              <div class="analytics-metric-card-sub">${tAnalytics.overview.total_assigned_subjects} subjects</div>
+            </div>
+
+            <div class="analytics-metric-card">
+              <div class="analytics-metric-card-label">Students Taught</div>
+              <div class="analytics-metric-card-val" data-color="info" data-countup data-countup-target="${tAnalytics.overview.total_students_taught}">
+                ${tAnalytics.overview.total_students_taught}
+              </div>
+              <div class="analytics-metric-card-sub">In department scope</div>
+            </div>
+
+            <div class="analytics-metric-card">
+              <div class="analytics-metric-card-label">Created Tests</div>
+              <div class="analytics-metric-card-val" data-color="success" data-countup data-countup-target="${tAnalytics.overview.assignments_created}">
+                ${tAnalytics.overview.assignments_created}
+              </div>
+              <div class="analytics-metric-card-sub">${tAnalytics.overview.assignments_evaluated} evaluated</div>
+            </div>
+
+            <div class="analytics-metric-card">
+              <div class="analytics-metric-card-label">Class Average</div>
+              <div class="analytics-metric-card-val" data-color="purple" data-countup data-countup-target="${tAnalytics.overview.class_average_score}" data-countup-decimals="1" data-countup-suffix=" / 100">
+                ${tAnalytics.overview.class_average_score} / 100
+              </div>
+              <div class="analytics-metric-card-sub">Evaluation score avg</div>
+            </div>
+          </div>
+        `;
+
+        if (window.EduBridgeCountUp) EduBridgeCountUp.animateAll(indTeacherView);
+      })
+      .catch(err => {
+        teacherSearchAlertText.textContent = 'Error querying faculty record.';
+        teacherSearchAlert.style.display = 'block';
+      });
+  }
+
+  teacherSearchForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const tid = teacherIdInput.value.trim();
+    if (tid) performAdminTeacherSearch(tid);
+  });
+});
+</script>
+{% endblock %}

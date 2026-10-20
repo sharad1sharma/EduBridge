@@ -1,0 +1,37 @@
+{% with current=request.resolver_match.url_name %}
+{% if user.role == "student" %}
+  <a href="{% url 'student_dashboard' %}"{% if current == "student_dashboard" %} aria-current="page"{% endif %}>Dashboard</a>
+  <a href="{% url 'student_analytics' %}"{% if current == "student_analytics" %} aria-current="page"{% endif %}>Analytics</a>
+  <a href="{% url 'student_attendance' %}"{% if current == "student_attendance" %} aria-current="page"{% endif %}>Attendance</a>
+  <a href="{% url 'student_results' %}"{% if current == "student_results" %} aria-current="page"{% endif %}>Results</a>
+  <a href="{% url 'student_coding' %}"{% if current == "student_coding" %} aria-current="page"{% endif %}>Coding</a>
+  <a href="{% url 'student_resources' %}"{% if current == "student_resources" %} aria-current="page"{% endif %}>Resources</a>
+  <a href="{% url 'student_scholarships' %}"{% if current == "student_scholarships" %} aria-current="page"{% endif %}>Scholarships</a>
+  <a href="{% url 'student_profile' %}"{% if current == "student_profile" %} aria-current="page"{% endif %}>Profile</a>
+{% elif user.role == "teacher" %}
+  <a href="{% url 'teacher_dashboard' %}"{% if current == "teacher_dashboard" %} aria-current="page"{% endif %}>Dashboard</a>
+  <a href="{% url 'teacher_analytics' %}"{% if current == "teacher_analytics" %} aria-current="page"{% endif %}>Analytics</a>
+  <a href="{% url 'teacher_attendance' %}"{% if current == "teacher_attendance" %} aria-current="page"{% endif %}>Attendance</a>
+  <a href="{% url 'teacher_coding' %}"{% if current == "teacher_coding" %} aria-current="page"{% endif %}>Coding & DSA</a>
+  <a href="{% url 'teacher_students' %}"{% if current == "teacher_students" or current == "teacher_student_detail" %} aria-current="page"{% endif %}>Students</a>
+  <a href="{% url 'teacher_assessments' %}"{% if current == "teacher_assessments" or current == "teacher_assessment_new" %} aria-current="page"{% endif %}>Assessments</a>
+  <a href="{% url 'teacher_meetings' %}"{% if current == "teacher_meetings" or current == "teacher_meeting_new" %} aria-current="page"{% endif %}>Live Classes</a>
+  <a href="{% url 'teacher_resources' %}"{% if current == "teacher_resources" %} aria-current="page"{% endif %}>Resources</a>
+  <a href="{% url 'teacher_profile' %}"{% if current == "teacher_profile" %} aria-current="page"{% endif %}>Profile</a>
+{% elif user.role == "admin" %}
+  <a href="{% url 'admin_dashboard' %}"{% if current == "admin_dashboard" %} aria-current="page"{% endif %}>Overview</a>
+  <a href="{% url 'admin_analytics' %}"{% if current == "admin_analytics" %} aria-current="page"{% endif %}>Analytics</a>
+  <a href="{% url 'admin_attendance' %}"{% if current == "admin_attendance" %} aria-current="page"{% endif %}>Attendance</a>
+  <a href="{% url 'admin_coding' %}"{% if current == "admin_coding" %} aria-current="page"{% endif %}>Coding & DSA</a>
+  <a href="{% url 'admin_students' %}"{% if current == "admin_students" or current == "admin_student_detail" %} aria-current="page"{% endif %}>Students</a>
+  <a href="{% url 'admin_teachers' %}"{% if current == "admin_teachers" or current == "admin_teacher_detail" or current == "admin_teacher_new" %} aria-current="page"{% endif %}>Teachers</a>
+  <a href="{% url 'admin_academic' %}"{% if current == "admin_academic" %} aria-current="page"{% endif %}>Academics</a>
+  <a href="{% url 'admin_assessments' %}"{% if current == "admin_assessments" %} aria-current="page"{% endif %}>Assessments</a>
+  <a href="{% url 'admin_scholarships' %}"{% if current == "admin_scholarships" %} aria-current="page"{% endif %}>Scholarships</a>
+  <a href="{% url 'admin_resources' %}"{% if current == "admin_resources" %} aria-current="page"{% endif %}>Resources</a>
+  <a href="{% url 'admin_meetings' %}"{% if current == "admin_meetings" %} aria-current="page"{% endif %}>Meetings</a>
+  <a href="{% url 'admin_ai_assistant' %}"{% if current == "admin_ai_assistant" %} aria-current="page"{% endif %}>Admin AI</a>
+  <a href="{% url 'admin_audit' %}"{% if current == "admin_audit" %} aria-current="page"{% endif %}>Audit</a>
+  <a href="{% url 'admin_settings' %}"{% if current == "admin_settings" %} aria-current="page"{% endif %}>Settings</a>
+{% endif %}
+{% endwith %}

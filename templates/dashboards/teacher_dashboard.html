@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+{% block title %}Teacher dashboard{% endblock %}
+{% block content %}
+
+<!-- Header & Greeting Banner -->
+<div class="card-header-bar" style="margin-bottom: 1.25rem;">
+  <div>
+    <h1 style="margin-bottom: 0.25rem;">Hello, {{ user.full_name }} 🎓</h1>
+    <p style="margin: 0; color: var(--text-muted);">Faculty Portal · Department of {{ profile.get_department_display|default:"Engineering" }} · {{ profile.designation|default:"Faculty" }}</p>
+  </div>
+  <div style="display: flex; gap: 0.65rem; align-items: center;">
+    <a class="btn primary" href="{% url 'teacher_profile' %}">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+      Faculty profile
+    </a>
+  </div>
+</div>
+
+<!-- Primary Metric Strip (Preserving Titleblock Hook & IDs) -->
+<dl class="titleblock" id="stats">
+  <div>
+    <dt>Teacher ID</dt>
+    <dd class="mono">{{ user.public_id }}</dd>
+  </div>
+  <div>
+    <dt>Department</dt>
+    <dd>{{ profile.get_department_display|default:"Not set" }}</dd>
+  </div>
+  <div>
+    <dt>Designation</dt>
+    <dd>{{ profile.designation|default:"Not set" }}</dd>
+  </div>
+  <div>
+    <dt>Profile</dt>
+    <dd><span data-countup data-countup-target="{{ percent }}" data-countup-suffix="%">{{ percent }}%</span> complete</dd>
+  </div>
+</dl>
+
+<!-- High-Density Assignment Overview Metric Grid (Alltio Style) -->
+<div class="dense-metric-grid">
+  <div class="dense-metric-item">
+    <div class="dense-metric-label">Total Enrolled</div>
+    <div class="dense-metric-num" style="color: #6366F1;" data-countup data-countup-target="{{ total_enrolled }}">{{ total_enrolled }}</div>
+    <small style="color: #059669; font-weight: 700; font-size: 0.725rem;">Students in your cohorts</small>
+  </div>
+  <div class="dense-metric-item">
+    <div class="dense-metric-label">Created Tests</div>
+    <div class="dense-metric-num" style="color: #2563EB;" data-countup data-countup-target="{{ total_assessments }}">{{ total_assessments }}</div>
+    <small style="color: var(--text-muted); font-size: 0.725rem;">Daily MCQs & Weekly Tests</small>
+  </div>
+  <div class="dense-metric-item">
+    <div class="dense-metric-label">Submissions</div>
+    <div class="dense-metric-num" style="color: #D97706;" data-countup data-countup-target="{{ total_submissions }}">{{ total_submissions }}</div>
+    <small style="color: #D97706; font-weight: 700; font-size: 0.725rem;">Attempt records received</small>
+  </div>
+  <div class="dense-metric-item">
+    <div class="dense-metric-label">Subjects</div>
+    <div class="dense-metric-num" style="color: #059669;" data-countup data-countup-target="{{ assigned_subjects.count }}">{{ assigned_subjects.count }}</div>
+    <small style="color: #059669; font-weight: 700; font-size: 0.725rem;">Assigned curriculum</small>
+  </div>
+</div>
+
+<div class="dashboard-columns-2">
+  <!-- Left Column: Attendance Donut & Student Management -->
+  <div style="display: flex; flex-direction: column; gap: 1.35rem;">
+
+    <!-- Circular Attendance Progress Ring (SVG Donut Chart - Alltio Style) -->
+    <section class="card">
+      <div class="card-header-bar">
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+          Batch Attendance & Class Engagement
+        </h2>
+        <span class="badge badge-active">Week Active</span>
+      </div>
+      <div class="donut-chart-container">
+        <div class="donut-svg-wrap">
+          <svg width="120" height="120" viewBox="0 0 42 42">
+            <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#F1F5F9" stroke-width="4.2"></circle>
+            <!-- 92% present circle (circumference = 100) -->
+            <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#6366F1" stroke-width="4.2"
+                    stroke-dasharray="92 8" stroke-dashoffset="25" stroke-linecap="round"></circle>
+          </svg>
+          <div class="donut-center-text">
+            <div class="donut-pct">92%</div>
+            <div class="donut-sub">Present</div>
+          </div>
+        </div>
+        <div class="donut-legend">
+          <div class="legend-item">
+            <span class="legend-dot" style="background: #6366F1;"></span>
+            <span><strong>92% Present</strong> (Regular engagement)</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot" style="background: #EF4444;"></span>
+            <span><strong>8% Absent</strong> (Medical / Leave)</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot" style="background: #10B981;"></span>
+            <span><strong>Active Cohort</strong> ({{ total_enrolled }} registered students)</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Student Directory & Class Table (Alltio High-Density Data Presentation) -->
+    <section class="card" id="taskList">
+      <div class="card-header-bar">
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          Your Enrolled Students
+        </h2>
+        <a href="{% url 'teacher_students' %}" class="btn small">Full Directory ↗</a>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Student</th>
+              <th scope="col">ID</th>
+              <th scope="col">Branch & Sem</th>
+              <th scope="col">Status</th>
+              <th scope="col">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in recent_students %}
+            <tr>
+              <td>
+                <div class="user-cell">
+                  <span class="user-cell-avatar">{{ s.public_id|slice:":2" }}</span>
+                  <span><strong>{{ s.full_name }}</strong><br><small style="color: var(--text-muted);">{{ s.email }}</small></span>
+                </div>
+              </td>
+              <td class="mono">{{ s.public_id }}</td>
+              <td>{{ s.student_profile.branch }} Sem {{ s.student_profile.semester }}</td>
+              <td>
+                {% if s.is_active %}
+                <span class="badge badge-active">Active</span>
+                {% else %}
+                <span class="badge badge-alert">Suspended</span>
+                {% endif %}
+              </td>
+              <td>
+                <a href="{% url 'teacher_student_detail' s.id %}" class="btn small">Diagnostics</a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" class="text-center text-muted py-3">No students currently enrolled in your branch subjects.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Teaching Resources & Lecture Materials (Hook: #resourceCards) -->
+    <section class="card" id="resourceCards">
+      <div class="card-header-bar">
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+          Course Resources & Materials
+        </h2>
+        <a href="{% url 'teacher_resources' %}" class="btn small">+ Add Resource</a>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+        {% for r in authored_resources %}
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; border-radius: 10px; background: #F8FAFC; border: 1px solid var(--border-subtle);">
+          <div>
+            <strong style="color: var(--text-main); font-size: 0.9rem;">{{ r.title }}</strong>
+            <p style="margin: 0; font-size: 0.775rem; color: var(--text-muted);">{{ r.get_resource_type_display }} · {{ r.branch }} Sem {{ r.semester }} · {{ r.created_at|date:"M d, Y" }}</p>
+          </div>
+          <span class="badge badge-active">Published</span>
+        </div>
+        {% empty %}
+        <p class="text-muted p-2" style="font-size: 0.85rem;">You haven't uploaded any resources yet. Click "+ Add Resource" above.</p>
+        {% endfor %}
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Right Column: Profile completion, Meetings, and Faculty AI Assistant -->
+  <div style="display: flex; flex-direction: column; gap: 1.35rem;">
+
+    <!-- Finish Your Profile Card (Preserved Core Content & Hooks) -->
+    <section class="card">
+      <div class="card-header-bar">
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 10"></polyline></svg>
+          Finish your profile
+        </h2>
+        <span class="badge {% if percent == 100 %}badge-active{% else %}badge-pending{% endif %}">{{ percent }}%</span>
+      </div>
+      <progress value="{{ percent }}" max="100" aria-label="Profile completion">{{ percent }}%</progress>
+      {% if missing %}
+        <p style="margin-top: 0.85rem; font-weight: 600; font-size: 0.875rem;">Still to add:</p>
+        <ul style="padding-left: 1.2rem; margin: 0.35rem 0 1rem; color: var(--text-secondary); font-size: 0.85rem;">
+          {% for item in missing %}<li>{{ item }}</li>{% endfor %}
+        </ul>
+        <a class="btn primary" href="{% url 'teacher_profile' %}" style="width: 100%;">Complete faculty profile</a>
+      {% else %}
+        <p style="margin-top: 0.85rem; color: #059669; font-weight: 600;">Your faculty profile is complete.</p>
+      {% endif %}
+    </section>
+
+    <!-- Scheduled Lectures & Meetings Widget (Hook: #meetingCards) -->
+    <section class="card" id="meetingCards">
+      <div class="card-header-bar">
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line></svg>
+          Scheduled Lectures & Meetings
+        </h2>
+        <a href="{% url 'teacher_meeting_new' %}" class="btn small">+ Schedule Class</a>
+      </div>
+      <div class="schedule-list">
+        {% for m in upcoming_meetings %}
+        <div class="schedule-item" style="border-left-color: #6366F1;">
+          <div class="schedule-time-block" style="color: #6366F1;">
+            <span>{{ m.scheduled_at|date:"h:i A" }}</span>
+          </div>
+          <div class="schedule-content">
+            <div class="schedule-title">{{ m.title }}</div>
+            <div class="schedule-meta">{{ m.branch }} Sem {{ m.semester }} · {{ m.duration_minutes }}m · <a href="{{ m.meeting_link }}" target="_blank">Meeting Link</a></div>
+          </div>
+        </div>
+        {% empty %}
+        <p class="text-muted p-2" style="font-size: 0.85rem;">No upcoming live lectures scheduled. Click "+ Schedule Class" to host a session.</p>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- Faculty AI Assistant (Hook: #chatMessages, #chatInput) -->
+    <div class="ai-card" id="testPanel">
+      <div class="ai-card-header" style="background: linear-gradient(135deg, #F8FAFC 0%, #EEF2FF 100%); display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 0.65rem;">
+          <div class="glowing-orb" style="background: radial-gradient(circle at 30% 30%, #818CF8, #6366F1, #4338CA); box-shadow: 0 0 16px rgba(99, 102, 241, 0.45);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+          </div>
+          <div class="ai-header-text">
+            <h3>EduBridge Teacher AI Assistant</h3>
+            <p>Generate quiz questions, rubrics, and lesson notes</p>
+          </div>
+        </div>
+        <button type="button" id="newChatBtn" class="btn small" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; background: #FFFFFF; border: 1px solid var(--border-subtle); color: var(--text-main); cursor: pointer;" title="Start fresh conversation">
+          + New Chat
+        </button>
+      </div>
+      <div class="ai-chat-messages" id="chatMessages">
+        <div class="chat-bubble chat-ai">
+          <div class="chat-avatar-ai" style="background: #EEF2FF; color: #6366F1;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+          </div>
+          <div class="chat-content">
+            <div class="chat-sender-name" style="color: #6366F1;">EduBridge Teacher AI Assistant</div>
+            <div class="chat-text">Welcome, Professor! Need student performance analysis, a 10-question MCQ quiz on Operating Systems, or a 60-minute lesson plan? Just ask.</div>
+            <span class="chat-time">Just now</span>
+          </div>
+        </div>
+      </div>
+      <div class="ai-chips-strip">
+        <button class="chat-chip" type="button">✨ Generate 5 MCQs on Graph DFS</button>
+        <button class="chat-chip" type="button">📝 Draft Lab Evaluation Rubric</button>
+      </div>
+      <div class="ai-input-row">
+        <input type="text" id="chatInput" placeholder="Generate quiz, syllabus notes, questions..." aria-label="Faculty AI Prompt">
+        <button class="ai-send-btn" id="chatSendBtn" type="button" style="background: #6366F1; box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);" aria-label="Send">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Preserved "Not available yet" card styled gracefully -->
+    <section class="card muted">
+      <h2>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        Planned Faculty Modules
+      </h2>
+      <ul style="font-size: 0.825rem;">
+        <li>Automated code plagiarism scanner</li>
+        <li>Batch gradebook import from Google Classroom & Excel</li>
+        <li>One-click student attendance QR generation</li>
+      </ul>
+    </section>
+
+  </div>
+</div>
+
+{% endblock %}

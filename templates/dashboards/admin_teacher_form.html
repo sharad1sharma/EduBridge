@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Create teacher account{% endblock %}
+{% block content %}
+<section class="card" style="max-width: 36rem; margin: 0 auto;">
+  <div class="card-header-bar">
+    <div>
+      <h1 style="margin-bottom: 0.25rem;">Create a teacher account</h1>
+      <p style="margin: 0; color: var(--text-muted);">Assign institutional credentials to faculty members</p>
+    </div>
+  </div>
+  <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1.25rem;">The teacher receives a unique teacher ID (<span class="mono">T1001...</span>) and a temporary password, requiring an immediate password reset at first sign-in.</p>
+  <form method="post" novalidate>{% csrf_token %}
+    {% include "partials/form_errors.html" %}
+    {% for field in form %}{% include "partials/field.html" %}{% endfor %}
+    <div style="margin-top: 1.5rem; display: flex; gap: 0.75rem;">
+      <button class="btn primary" type="submit">Create faculty account</button>
+      <a class="btn" href="{% url 'admin_users' %}">Cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

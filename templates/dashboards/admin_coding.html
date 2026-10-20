@@ -146,7 +146,7 @@
                     {% for res in coding_resources %}
                     <tr id="res-row-{{ res.id }}">
                         <td>
-                            <img src="{{ res.display_thumbnail }}" alt="{{ res.title }}" style="width: 42px; height: 42px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-subtle);" onerror="this.src='/static/img/fallback-resource.svg'">
+                            <img src="{{ res.display_thumbnail }}" alt="{{ res.title }}" style="width: 42px; height: 42px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-subtle);" onerror="this.onerror=null; this.src='/static/img/thumbnails/dsa_two_sum.jpg'">
                         </td>
                         <td>
                             <div style="font-weight: 700; color: #0F172A;">

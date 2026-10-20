@@ -459,7 +459,8 @@ class Command(BaseCommand):
                 "topic": "Master Theorem",
                 "resource_type": LearningResource.ResourceType.PDF,
                 "external_url": "https://www.geeksforgeeks.org/master-theorem-for-subtract-and-conquer-recurrences/",
-                "thumbnail_url": "https://images.unsplash.com/photo-1509228468518-180dd4864904?w=500&q=80",
+                "thumbnail_url": "/static/img/thumbnails/algo_master_theorem.jpg",
+                "thumbnail_image": "resources/thumbs/algo_master_theorem.jpg",
             },
             {
                 "title": "Operating Systems Process Synchronization & Mutex Lab Manual",
@@ -470,7 +471,8 @@ class Command(BaseCommand):
                 "topic": "Concurrency & Mutex",
                 "resource_type": LearningResource.ResourceType.LAB_MANUAL,
                 "external_url": "https://os.eecs.harvard.edu/",
-                "thumbnail_url": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=500&q=80",
+                "thumbnail_url": "/static/img/thumbnails/os_concurrency.jpg",
+                "thumbnail_image": "resources/thumbs/os_concurrency.jpg",
             },
             {
                 "title": "Database Relational Algebra & SQL Query Optimization Guide",
@@ -481,7 +483,8 @@ class Command(BaseCommand):
                 "topic": "SQL Optimization",
                 "resource_type": LearningResource.ResourceType.NOTES,
                 "external_url": "https://use-the-index-luke.com/",
-                "thumbnail_url": "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?w=500&q=80",
+                "thumbnail_url": "/static/img/thumbnails/db_sql.jpg",
+                "thumbnail_image": "resources/thumbs/db_sql.jpg",
             },
             {
                 "title": "Computer Networks TCP/IP Protocol Analysis & Wireshark Labs",
@@ -492,7 +495,8 @@ class Command(BaseCommand):
                 "topic": "Wireshark Analysis",
                 "resource_type": LearningResource.ResourceType.LAB_MANUAL,
                 "external_url": "https://www.wireshark.org/docs/",
-                "thumbnail_url": "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=500&q=80",
+                "thumbnail_url": "/static/img/thumbnails/net_protocols.jpg",
+                "thumbnail_image": "resources/thumbs/net_protocols.jpg",
             },
         ]
 

@@ -321,7 +321,7 @@
       {% for item in dsa_resources %}
       <div class="hub-card">
         <div class="hub-card-thumb-wrap">
-          <img src="{{ item.display_thumbnail }}" alt="{{ item.title }}" class="hub-card-thumb" onerror="this.onerror=null; this.src='/static/img/fallback-resource.svg';">
+          <img src="{{ item.display_thumbnail }}" alt="{{ item.title }}" class="hub-card-thumb" onerror="this.onerror=null; this.src='/static/img/thumbnails/dsa_two_sum.jpg';">
           <div class="hub-card-badge-strip">
             <span class="badge badge-platform">{{ item.platform_name|default:"External Portal" }}</span>
             <span class="badge badge-diff-{{ item.difficulty|lower }}">{{ item.difficulty }}</span>
@@ -368,7 +368,7 @@
       {% for comp in compilers %}
       <div class="hub-card">
         <div class="hub-card-thumb-wrap">
-          <img src="{{ comp.display_thumbnail }}" alt="{{ comp.title }}" class="hub-card-thumb" onerror="this.onerror=null; this.src='/static/img/fallback-resource.svg';">
+          <img src="{{ comp.display_thumbnail }}" alt="{{ comp.title }}" class="hub-card-thumb" onerror="this.onerror=null; this.src='/static/img/thumbnails/cloud_compiler.jpg';">
           <div class="hub-card-badge-strip">
             <span class="badge badge-platform">{{ comp.platform_name|default:"Cloud Runtime" }}</span>
           </div>

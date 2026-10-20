@@ -216,7 +216,15 @@ class LearningResource(models.Model):
                 pass
         if self.thumbnail_url:
             return self.thumbnail_url
-        return "/static/img/fallback-resource.svg"
+        title_lower = (self.title or "").lower()
+        subj_code = getattr(getattr(self, "subject", None), "code", "").upper()
+        if "os" in title_lower or "thread" in title_lower or "mutex" in title_lower or "302" in subj_code:
+            return "/static/img/thumbnails/os_concurrency.jpg"
+        if "database" in title_lower or "sql" in title_lower or "304" in subj_code:
+            return "/static/img/thumbnails/db_sql.jpg"
+        if "network" in title_lower or "wireshark" in title_lower or "303" in subj_code:
+            return "/static/img/thumbnails/net_protocols.jpg"
+        return "/static/img/thumbnails/algo_master_theorem.jpg"
 
     class Meta:
         ordering = ["-created_at"]
@@ -523,8 +531,18 @@ class CodingResource(models.Model):
         if self.thumbnail_url:
             return self.thumbnail_url
         if self.resource_type == self.ResourceType.COMPILER:
-            return "/static/img/compiler-placeholder.svg"
-        return "/static/img/dsa-placeholder.svg"
+            return "/static/img/thumbnails/cloud_compiler.jpg"
+        cat_lower = (self.topic_category or "").lower()
+        title_lower = (self.title or "").lower()
+        if "search" in cat_lower or "search" in title_lower:
+            return "/static/img/thumbnails/dsa_binary_search.jpg"
+        if "tree" in cat_lower or "graph" in cat_lower or "tree" in title_lower or "island" in title_lower:
+            return "/static/img/thumbnails/dsa_trees_graphs.jpg"
+        if "dynamic" in cat_lower or "knapsack" in title_lower or "dp" in cat_lower:
+            return "/static/img/thumbnails/dsa_dynamic_programming.jpg"
+        if "linked" in cat_lower or "list" in title_lower:
+            return "/static/img/thumbnails/dsa_linked_lists.jpg"
+        return "/static/img/thumbnails/dsa_two_sum.jpg"
 
 
 class AttendanceRecord(models.Model):

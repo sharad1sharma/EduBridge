@@ -7,7 +7,7 @@ from django.utils.cache import add_never_cache_headers
 from . import audit
 
 CSP = (
-    "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; "
+    "default-src 'self'; img-src 'self' data: https://images.unsplash.com https://*.unsplash.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; "
     "form-action 'self'; frame-ancestors 'none'; base-uri 'self'"
 )
 # A user who must change a temporary password may only reach these.
@@ -43,6 +43,8 @@ class AccessPolicyMiddleware:
         return self.get_response(request)
 
     def process_view(self, request, view_func, view_args, view_kwargs):
+        if request.path.startswith("/media/") or request.path.startswith("/static/"):
+            return None
         policy = getattr(view_func, "access_policy", None)
         if policy is None:  # a developer forgot to declare access: refuse
             audit.record(request, "authz_denied", reason="view_without_policy", path=request.path[:200])

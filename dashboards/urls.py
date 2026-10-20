@@ -96,6 +96,7 @@ urlpatterns = [
     path("api/notifications/", api.notifications_list, name="api_notifications_list"),
     path("api/notifications/<int:pk>/read/", api.notification_mark_read, name="api_notification_mark_read"),
     path("api/notifications/read-all/", api.notification_mark_all_read, name="api_notification_read_all"),
+    path("api/notifications/mark-all-read/", api.notification_mark_all_read, name="api_notification_mark_all_read"),
     path("api/ai/chat/", api.unified_ai_chat_api, name="api_ai_chat"),
     path("api/ai/chat", api.unified_ai_chat_api),
 ]

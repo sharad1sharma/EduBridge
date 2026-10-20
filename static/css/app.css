@@ -2979,6 +2979,161 @@ h2.ai-heading {
   display: block;
 }
 
+/* ==========================================================================
+   Animated & Interactive Reactive Footer
+   ========================================================================== */
 
+main, #main {
+  flex: 1 0 auto;
+}
 
+.app-footer {
+  position: relative;
+  width: 100%;
+  margin-top: auto;
+  background: var(--surface-card, #FFFFFF);
+  border-top: 1px solid var(--border-subtle);
+  overflow: hidden;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.02);
+}
 
+/* Animated continuous radiant gradient accent line across footer top */
+.app-footer::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #3B82F6, #8B5CF6, #EC4899, #06B6D4, #3B82F6);
+  background-size: 300% 100%;
+  animation: footerGradientFlow 8s linear infinite;
+  opacity: 0.85;
+}
+
+@keyframes footerGradientFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.footer-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.85rem 1.5rem 2.25rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  animation: footerFadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes footerFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.footer-rights {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  max-width: 680px;
+  letter-spacing: -0.01em;
+  transition: color 0.25s ease;
+}
+
+.footer-copyright {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Interactive reaction on Sharad Sharma */
+.footer-author-reaction {
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--brand-primary, #2563EB) 0%, #7C3AED 50%, #DB2777 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+  cursor: pointer;
+  padding: 0 4px;
+  border-radius: var(--radius-sm);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.25s ease, background-position 0.4s ease;
+  position: relative;
+}
+
+.footer-author-reaction:hover {
+  transform: translateY(-2px) scale(1.08);
+  background-position: right center;
+  filter: drop-shadow(0 4px 12px rgba(59, 130, 246, 0.4));
+}
+
+.footer-author-reaction:active {
+  transform: translateY(0) scale(0.96);
+}
+
+/* Floating reaction bubble when clicked */
+.author-reaction-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #0F172A;
+  color: #FFFFFF;
+  padding: 0.55rem 1.15rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 9999;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.author-reaction-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Dark mode overrides for footer */
+[data-theme="dark"] .app-footer {
+  background: #0B0F19 !important;
+  border-top-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .footer-rights {
+  color: #94A3B8;
+}
+
+[data-theme="dark"] .footer-copyright {
+  color: #CBD5E1;
+}
+
+[data-theme="dark"] .footer-author-reaction {
+  background: linear-gradient(135deg, #60A5FA 0%, #A78BFA 50%, #F472B6 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}

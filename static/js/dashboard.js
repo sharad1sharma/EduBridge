@@ -645,35 +645,7 @@
         });
       });
 
-      // Quick Fill Buttons
-      const fillStudentBtn = document.getElementById('fillStudentBtn');
-      const fillTeacherBtn = document.getElementById('fillTeacherBtn');
-      const fillAdminBtn = document.getElementById('fillAdminBtn');
 
-      if (fillStudentBtn && idInput) {
-        fillStudentBtn.addEventListener('click', function () {
-          const tab = document.getElementById('tabStudent');
-          if (tab) tab.click();
-          idInput.value = 'jane_wick_099';
-          if (pwInput) pwInput.value = 'EduBridgeStudent2026!';
-        });
-      }
-      if (fillTeacherBtn && idInput) {
-        fillTeacherBtn.addEventListener('click', function () {
-          const tab = document.getElementById('tabTeacher');
-          if (tab) tab.click();
-          idInput.value = 'prof_sharma';
-          if (pwInput) pwInput.value = 'EduBridgeTeacher2026!';
-        });
-      }
-      if (fillAdminBtn && idInput) {
-        fillAdminBtn.addEventListener('click', function () {
-          const tab = document.getElementById('tabAdmin');
-          if (tab) tab.click();
-          idInput.value = 'admin';
-          if (pwInput) pwInput.value = 'EduBridgeAdmin2026!';
-        });
-      }
     }
 
     // 7. Interactive Administration Suite & Roadmap Modals
@@ -824,4 +796,25 @@
     }
   }
 
+  // 8. Footer Author Interactive Reaction
+  document.addEventListener('DOMContentLoaded', function () {
+    const authorEl = document.getElementById('authorHighlight');
+    if (authorEl) {
+      authorEl.addEventListener('click', function () {
+        let toast = document.querySelector('.author-reaction-toast');
+        if (!toast) {
+          toast = document.createElement('div');
+          toast.className = 'author-reaction-toast';
+          toast.innerHTML = '✨ <span>Crafted with precision by <strong>Sharad Sharma</strong> © 2026</span>';
+          document.body.appendChild(toast);
+        }
+        toast.classList.add('show');
+        setTimeout(() => {
+          toast.classList.remove('show');
+        }, 3200);
+      });
+    }
+  });
+
 })();
+

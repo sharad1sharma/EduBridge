@@ -123,7 +123,15 @@
     {% for message in messages %}<p class="notice {{ message.tags }}" role="status">{{ message }}</p>{% endfor %}
     {% block content %}{% endblock %}
   </main>
-  <footer>EduBridge for B.Tech students, teachers and administrators. Early build: features marked “not available yet” are planned, not working.</footer>
+  <footer class="app-footer">
+    <div class="footer-container">
+      <p class="footer-rights">All Rights Reserved. All other trademarks and copyrights are the property of their respective holders.</p>
+      <p class="footer-copyright">
+        <span>Copyright © 2026</span>
+        <span class="footer-author-reaction" id="authorHighlight" title="Click for a surprise!">Sharad Sharma</span>.
+      </p>
+    </div>
+  </footer>
   <script src="{% static 'js/countup.js' %}"></script>
   <script src="{% static 'js/charts.js' %}?v=20261020_darkfix"></script>
   <script src="{% static 'js/dashboard.js' %}?v=20261020_darkfix"></script>

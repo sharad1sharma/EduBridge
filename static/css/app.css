@@ -142,12 +142,24 @@ body[data-theme="dark"] {
 }
 
 [data-theme="dark"] .search-pill-container {
-  background: #151D2F;
-  border-color: var(--border-subtle);
+  background: transparent;
 }
 
+[data-theme="dark"] input.search-pill-input,
 [data-theme="dark"] .search-pill-input {
-  color: var(--text-main);
+  background: #151D2F !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] input.search-pill-input:focus,
+[data-theme="dark"] .search-pill-input:focus {
+  background: #1A2234 !important;
+  border-color: var(--primary) !important;
+}
+
+[data-theme="dark"] .search-pill-container svg {
+  color: var(--text-muted) !important;
 }
 
 [data-theme="dark"] .icon-action-btn {
@@ -595,34 +607,48 @@ a:hover {
   display: flex;
   align-items: center;
   position: relative;
-  min-width: 140px;
-  max-width: 200px;
+  min-width: 170px;
+  max-width: 240px;
+  height: 34px;
   flex-shrink: 1;
 }
 .search-pill-container svg {
   position: absolute;
-  left: 0.75rem;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
   color: var(--text-muted);
   pointer-events: none;
+  z-index: 2;
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
 }
+input.search-pill-input,
 .search-pill-input {
-  width: 100%;
-  padding: 0.4rem 0.75rem 0.4rem 2.1rem;
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--border-subtle);
-  background: #F8FAFC;
-  font-size: 0.8125rem;
-  color: var(--text-main);
+  width: 100% !important;
+  height: 34px !important;
+  line-height: 34px !important;
+  padding: 0 0.85rem 0 2.5rem !important;
+  border-radius: var(--radius-pill) !important;
+  border: 1px solid var(--border-subtle) !important;
+  background: #F8FAFC !important;
+  font-size: 0.8125rem !important;
+  color: var(--text-main) !important;
+  box-sizing: border-box !important;
   transition: all 0.2s ease;
 }
+input.search-pill-input:focus,
 .search-pill-input:focus {
-  outline: none;
-  background: #FFFFFF;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-glow);
+  outline: none !important;
+  background: #FFFFFF !important;
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px var(--primary-glow) !important;
 }
+input.search-pill-input::placeholder,
 .search-pill-input::placeholder {
-  color: #94A3B8;
+  color: #94A3B8 !important;
+  font-size: 0.8125rem !important;
 }
 
 /* Account Cluster (Right Side) */
@@ -1229,7 +1255,7 @@ label {
   color: var(--text-muted);
   font-size: 0.8rem;
 }
-input:not([type="checkbox"]):not([type="radio"]), select, textarea {
+input:not([type="checkbox"]):not([type="radio"]):not(.search-pill-input), select, textarea {
   width: 100%;
   max-width: 100%;
   padding: 0.625rem 0.85rem;

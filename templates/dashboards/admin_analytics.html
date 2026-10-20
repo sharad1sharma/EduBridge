@@ -684,7 +684,7 @@ document.addEventListener('DOMContentLoaded', function () {
         indStudentView.style.display = 'block';
 
         indStudentView.innerHTML = `
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; background: #EFF6FF; padding: 0.85rem 1.25rem; border-radius: var(--radius-md); border: 1px solid rgba(59, 130, 246, 0.2);">
+          <div class="analytics-detail-banner" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; background: var(--primary-light, #EFF6FF); padding: 0.85rem 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); color: var(--text-main);">
             <div style="display: flex; align-items: center; gap: 0.75rem;">
               <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: #FFF; display: flex; align-items: center; justify-content: center; font-weight: 700;">
                 ${(data.student_name || 'S').slice(0, 1).toUpperCase()}
@@ -814,7 +814,7 @@ document.addEventListener('DOMContentLoaded', function () {
         indTeacherView.style.display = 'block';
 
         indTeacherView.innerHTML = `
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; background: #EEF2FF; padding: 0.85rem 1.25rem; border-radius: var(--radius-md); border: 1px solid rgba(99, 102, 241, 0.2);">
+          <div class="analytics-detail-banner" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; background: var(--accent-light, #EEF2FF); padding: 0.85rem 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); color: var(--text-main);">
             <div style="display: flex; align-items: center; gap: 0.75rem;">
               <div style="width: 36px; height: 36px; border-radius: 50%; background: #6366F1; color: #FFF; display: flex; align-items: center; justify-content: center; font-weight: 700;">
                 ${(data.teacher_name || 'T').slice(0, 1).toUpperCase()}

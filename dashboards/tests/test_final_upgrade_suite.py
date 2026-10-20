@@ -249,7 +249,7 @@ class FinalUpgradeSuiteTests(TestCase):
         self.assertIn("selected_subject", roster_data)
 
     def test_dark_mode_theme_script_and_toggle_present_in_base_template(self):
-        """Verify dark mode initialization script and toggle button are rendered."""
+        """Verify dark mode initialization script and toggle button are rendered for authenticated users."""
         self.client.force_login(self.student)
         resp = self.client.get(reverse("student_dashboard"))
         self.assertEqual(resp.status_code, 200)
@@ -259,13 +259,24 @@ class FinalUpgradeSuiteTests(TestCase):
         self.assertIn("theme-icon-sun", content)
         self.assertIn("theme-icon-moon", content)
 
+    def test_dark_mode_toggle_visible_for_unauthenticated_visitors(self):
+        """Verify dark mode toggle button is visible even when user is not logged in."""
+        resp = self.client.get(reverse("accounts:login"))
+        self.assertEqual(resp.status_code, 200)
+        content = resp.content.decode("utf-8")
+        self.assertIn("id=\"themeToggleBtn\"", content)
+        self.assertIn("theme-toggle-btn", content)
+        self.assertIn("theme-icon-sun", content)
+        self.assertIn("theme-icon-moon", content)
+
     def test_notifications_closed_by_default_and_endpoint(self):
-        """Verify notifications API returns valid JSON and template specifies closed popover."""
+        """Verify notifications API returns valid JSON, created_at_human, and popover is closed by default."""
         self.client.force_login(self.student)
         resp = self.client.get(reverse("student_dashboard"))
         self.assertEqual(resp.status_code, 200)
         content = resp.content.decode("utf-8")
         self.assertIn("id=\"notificationPopover\" style=\"display: none;\"", content)
+        self.assertIn("id=\"notifBadgeCount\"", content)
 
         # Call notification listing API
         resp_api = self.client.get(reverse("api_notifications_list"))
@@ -273,3 +284,24 @@ class FinalUpgradeSuiteTests(TestCase):
         data = resp_api.json()
         self.assertIn("unread_count", data)
         self.assertIn("notifications", data)
+
+        # Create unread notification and verify created_at_human & unread_count
+        from dashboards.models import PlatformNotification
+        notif = PlatformNotification.objects.create(
+            recipient=self.student,
+            title="Automated Test Alert",
+            message="Testing red badge synchronization.",
+            notification_type=PlatformNotification.NotificationType.PLATFORM,
+            is_read=False,
+        )
+        resp_api2 = self.client.get(reverse("api_notifications_list"))
+        data2 = resp_api2.json()
+        self.assertGreaterEqual(data2["unread_count"], 1)
+        self.assertTrue(any(n["id"] == notif.id and "created_at_human" in n and n["created_at_human"] != "" for n in data2["notifications"]))
+
+        # Mark read and verify count decrements
+        resp_read = self.client.post(f"/api/notifications/{notif.id}/read/")
+        self.assertEqual(resp_read.status_code, 200)
+        resp_api3 = self.client.get(reverse("api_notifications_list"))
+        data3 = resp_api3.json()
+        self.assertEqual(data3["unread_count"], data2["unread_count"] - 1)

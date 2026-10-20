@@ -226,6 +226,7 @@ class Command(BaseCommand):
                     username=s_info["username"],
                     public_id=s_info["public_id"],
                 )
+            user.username = s_info["username"]
             user.full_name = s_info["full_name"]
             user.email = s_info["email"]
             user.role = Role.STUDENT.value
@@ -532,24 +533,52 @@ class Command(BaseCommand):
             }
         )
 
-        PlatformNotification.objects.get_or_create(
+        PlatformNotification.objects.update_or_create(
             recipient=primary_student,
             title="Academic Assessment Published: Graph Traversal",
             defaults={
                 "message": "Prof. Sharma published Daily Practice 05: Graph Traversal & Topological Sort. Complete before deadline.",
                 "notification_type": PlatformNotification.NotificationType.ASSIGNMENT,
+                "link": "/student/results/",
                 "is_read": False,
             }
         )
-        PlatformNotification.objects.get_or_create(
+        PlatformNotification.objects.update_or_create(
             recipient=primary_student,
             title="Verified Attendance Record",
             defaults={
                 "message": "Your attendance was verified for CS301 Lecture Session with 82.5% overall semester standing.",
                 "notification_type": PlatformNotification.NotificationType.PLATFORM,
+                "link": "/student/attendance/",
                 "is_read": True,
             }
         )
+
+        # Active demo notification for teacher
+        PlatformNotification.objects.update_or_create(
+            recipient=primary_teacher,
+            title="Student Submission: Rahul Verma (CS301)",
+            defaults={
+                "message": "Student Rahul Verma (S1001) completed Daily Practice 04 with a score of 18/20.",
+                "notification_type": PlatformNotification.NotificationType.ASSIGNMENT,
+                "link": "/teacher/assessments/",
+                "is_read": False,
+            }
+        )
+
+        # Active demo notification for admin
+        admin_user = User.objects.filter(role=Role.ADMIN.value, is_active=True).first()
+        if admin_user:
+            PlatformNotification.objects.update_or_create(
+                recipient=admin_user,
+                title="System Integrity Telemetry",
+                defaults={
+                    "message": "Institutional audit logging is active and database backup completed successfully.",
+                    "notification_type": PlatformNotification.NotificationType.PLATFORM,
+                    "link": "/administration/audit/",
+                    "is_read": False,
+                }
+            )
 
         self.stdout.write(self.style.SUCCESS("[SUCCESS] EduBridge Demo Dataset successfully seeded!"))
         self.stdout.write(self.style.SUCCESS(

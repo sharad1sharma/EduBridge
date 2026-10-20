@@ -382,7 +382,8 @@
         badgeCount.style.display = count > 0 ? 'inline-flex' : 'none';
       }
       if (badgeDot) {
-        badgeDot.style.display = count > 0 ? 'block' : 'none';
+        // Keep dot hidden to avoid dual-indicator visual overlap
+        badgeDot.style.display = 'none';
       }
       if (unreadPill) {
         unreadPill.textContent = `${count} unread`;
@@ -406,10 +407,10 @@
         <div class="notif-card-item ${n.is_read ? 'read' : 'unread'}" data-id="${n.id}" data-url="${escapeHtml(n.link || '')}" style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-subtle); cursor: pointer; transition: background 0.15s ease; background: ${n.is_read ? 'transparent' : 'var(--primary-light, #F0F9FF)'};">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.2rem;">
             <strong style="font-size: 0.84rem; color: var(--text-main); font-weight: ${n.is_read ? '600' : '700'};">${escapeHtml(n.title)}</strong>
-            <span style="font-size: 0.72rem; color: var(--text-muted); white-space: nowrap;">${escapeHtml(n.created_at_human || '')}</span>
+            <span style="font-size: 0.72rem; color: var(--text-muted); white-space: nowrap;">${escapeHtml(n.created_at_human || n.time_ago || '')}</span>
           </div>
           <p style="margin: 0; font-size: 0.8rem; color: var(--text-muted); line-height: 1.35;">${escapeHtml(n.message)}</p>
-          ${!n.is_read ? '<span style="display: inline-block; width: 6px; height: 6px; background: #2563EB; border-radius: 50%; margin-top: 0.35rem;"></span>' : ''}
+          ${!n.is_read ? '<span class="notif-unread-dot" style="display: inline-block; width: 6px; height: 6px; background: #2563EB; border-radius: 50%; margin-top: 0.35rem;"></span>' : ''}
         </div>
       `).join('');
 
@@ -418,11 +419,27 @@
           e.stopPropagation();
           const notifId = this.getAttribute('data-id');
           const targetUrl = this.getAttribute('data-url');
+          const wasUnread = this.classList.contains('unread');
 
           // Instantly mark as read in UI
           this.classList.remove('unread');
           this.classList.add('read');
           this.style.background = 'transparent';
+          const unreadDot = this.querySelector('.notif-unread-dot');
+          if (unreadDot) unreadDot.style.display = 'none';
+
+          // Instantly decrement red count badge on notification bell
+          if (wasUnread && badgeCount) {
+            let cur = parseInt(badgeCount.textContent, 10) || 0;
+            let next = Math.max(0, cur - 1);
+            badgeCount.textContent = next > 99 ? '99+' : next;
+            badgeCount.style.display = next > 0 ? 'inline-flex' : 'none';
+            if (badgeDot) badgeDot.style.display = 'none';
+            if (unreadPill) {
+              unreadPill.textContent = `${next} unread`;
+              unreadPill.className = next > 0 ? 'badge badge-alert' : 'badge badge-subtle';
+            }
+          }
 
           try {
             await fetch(`/api/notifications/${notifId}/read/`, {
@@ -472,6 +489,29 @@
     if (markAllBtn) {
       markAllBtn.addEventListener('click', async function (e) {
         e.stopPropagation();
+        
+        // Optimistic UI update: immediately clear red badge and zero counters
+        if (badgeCount) {
+          badgeCount.textContent = '0';
+          badgeCount.style.display = 'none';
+        }
+        if (badgeDot) {
+          badgeDot.style.display = 'none';
+        }
+        if (unreadPill) {
+          unreadPill.textContent = '0 unread';
+          unreadPill.className = 'badge badge-subtle';
+        }
+        if (listContainer) {
+          listContainer.querySelectorAll('.notif-card-item').forEach(item => {
+            item.classList.remove('unread');
+            item.classList.add('read');
+            item.style.background = 'transparent';
+            const dot = item.querySelector('.notif-unread-dot');
+            if (dot) dot.style.display = 'none';
+          });
+        }
+
         try {
           const resp = await fetch('/api/notifications/read-all/', {
             method: 'POST',

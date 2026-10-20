@@ -161,6 +161,7 @@ def get_user_notifications_payload(user: User, limit: int = 25) -> Dict[str, Any
             "link": n.link or "#",
             "is_read": n.is_read,
             "time_ago": time_ago,
+            "created_at_human": time_ago,
             "created_at": n.created_at.strftime("%Y-%m-%d %H:%M:%S")
         })
 

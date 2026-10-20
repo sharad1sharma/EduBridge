@@ -484,20 +484,150 @@ a:hover {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   color: var(--text-muted);
-  background: #F1F5F9;
-  border: 1px solid transparent;
+  background: var(--surface-card, #FFFFFF);
+  border: 1.5px solid var(--border-strong, #CBD5E1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   box-sizing: border-box;
+  flex-shrink: 0;
 }
 .icon-action-btn:hover {
-  background: #E2E8F0;
+  background: var(--bg-hover, #F8FAFC);
+  border-color: var(--primary, #2563EB);
   color: var(--text-main);
+  transform: translateY(-1px);
 }
+
+/* Highly Visible Dark/Light Theme Toggle Pill */
+.theme-toggle-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.45rem;
+  height: 34px;
+  min-width: 34px;
+  padding: 0 0.75rem;
+  border-radius: var(--radius-pill);
+  background: #FFFFFF;
+  border: 1.5px solid #94A3B8;
+  color: var(--text-main);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.theme-toggle-btn:hover {
+  background: #F1F5F9;
+  border-color: var(--primary, #2563EB);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px -1px rgba(0, 0, 0, 0.12);
+}
+.theme-toggle-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+}
+.theme-icon-sun {
+  color: #F59E0B;
+}
+.theme-icon-moon {
+  color: #4F46E5;
+}
+
+[data-theme="dark"] .theme-toggle-btn {
+  background: #1E293B;
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #F8FAFC;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+[data-theme="dark"] .theme-toggle-btn:hover {
+  background: #334155;
+  border-color: #F59E0B;
+}
+[data-theme="dark"] .theme-toggle-label {
+  color: #F8FAFC;
+}
+[data-theme="dark"] .theme-icon-moon {
+  color: #93C5FD;
+}
+
+/* Dedicated Notification Control Button */
+.notif-action-btn {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  background: #FFFFFF;
+  border: 1.5px solid #94A3B8;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+.notif-action-btn:hover {
+  background: #F1F5F9;
+  border-color: var(--primary, #2563EB);
+  color: var(--text-main);
+  transform: translateY(-1px);
+}
+[data-theme="dark"] .notif-action-btn {
+  background: #1E293B;
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #94A3B8;
+}
+[data-theme="dark"] .notif-action-btn:hover {
+  background: #334155;
+  color: #F8FAFC;
+}
+
+/* Pulsing Red Notification Count Badge */
+.notif-count-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9999px;
+  background: #EF4444;
+  color: #FFFFFF;
+  font-size: 0.65rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #FFFFFF;
+  box-shadow: 0 2px 5px rgba(239, 68, 68, 0.45);
+  line-height: 1;
+  pointer-events: none;
+  z-index: 5;
+  animation: notifPulse 2.5s infinite ease-in-out;
+}
+@keyframes notifPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+[data-theme="dark"] .notif-count-badge {
+  border-color: #1E293B;
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.6);
+}
+
 .badge-dot {
   position: absolute;
   top: 6px;
@@ -2208,6 +2338,17 @@ footer {
   }
   .who-name {
     display: none;
+  }
+}
+
+@media (max-width: 992px) {
+  .theme-toggle-label {
+    display: none;
+  }
+  .theme-toggle-btn {
+    padding: 0;
+    width: 34px;
+    min-width: 34px;
   }
 }
 

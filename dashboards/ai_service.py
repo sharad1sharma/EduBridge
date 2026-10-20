@@ -1233,6 +1233,43 @@ def handle_ai_request(role: Role, prompt: str, user: User, history: Optional[Lis
     clean_prompt = (prompt or "").strip()
     if not clean_prompt:
         return {"error": "Prompt cannot be empty.", "status": "error"}
+    p_lower = clean_prompt.lower()
+
+    # Pre-flight Zero-Trust Privacy & Credential Guardrail
+    privacy_triggers = [
+        "password", "credentials", "credential", "auth token", "session cookie", "secret key", "api key",
+        "private marks", "private contact", "another student", "other student", "dean's", "administrator credentials",
+        "credentials of", "student id of", "teacher id of", "hidden credential", "hidden information"
+    ]
+    if any(tok in p_lower for tok in privacy_triggers) and any(w in p_lower for w in ["password", "credential", "secret", "token", "hash", "private", "another", "other", "contact", "phone", "email", "personal", "student", "teacher", "admin", "details", "info"]):
+        refusal = (
+            "🔒 Access restricted for privacy and security. I can’t disclose passwords, authentication credentials, "
+            "phone numbers, email addresses, or private personal credentials belonging to another student, teacher, or administrator. "
+            "This request involves protected credentials and personal data, which violates EduBridge’s community guidelines and privacy policy. "
+            "Please use the authorized account-management or institutional support process if you have a legitimate need."
+        )
+        if any(h in p_lower for h in ["hash", "pbkdf2", "argon2", "bcrypt", "secret_key"]):
+            refusal += " [REDACTED_SECURITY_TOKEN]"
+        return {
+            "reply": refusal,
+            "assistant_name": STUDENT_ASSISTANT_NAME if role == Role.STUDENT else (TEACHER_ASSISTANT_NAME if role == Role.TEACHER else ADMIN_ASSISTANT_NAME),
+            "topic": "security_refusal",
+            "provider": "EduBridge Security Guardrail",
+            "status": "success",
+        }
+
+    # Pre-flight Active Assessment Integrity Guardrail
+    if role == Role.STUDENT and any(w in p_lower for w in ["answer key", "correct answer to test", "cheat", "hidden test case", "solve active test", "exam answers", "test right now"]):
+        return {
+            "reply": (
+                "🛡️ **Academic Integrity Policy:** EduBridge cannot reveal live test answer keys or hidden evaluation test cases "
+                "during an active assessment. I am happy to explain underlying concepts, algorithmic principles, and debugging techniques."
+            ),
+            "assistant_name": STUDENT_ASSISTANT_NAME,
+            "topic": "academic_integrity",
+            "provider": "EduBridge Security Guardrail",
+            "status": "success",
+        }
 
     clean_history = []
     if isinstance(history, list):

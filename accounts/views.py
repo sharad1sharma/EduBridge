@@ -97,16 +97,18 @@ def login_view(request):
             ).first()
             if user is None and identifier.strip().lower() in ["jane_wick_099", "jane_wick", "s1099"]:
                 # Ensure the standard demo student is provisioned on demand
-                user, _ = User.objects.get_or_create(
-                    username="jane_wick_099",
-                    defaults={
-                        "email": "jane.wick@edubridge.edu",
-                        "full_name": "Jane Wick",
-                        "public_id": "S1099",
-                        "role": Role.STUDENT.value,
-                        "is_active": True,
-                    }
-                )
+                user = User.objects.filter(Q(username="jane_wick_099") | Q(public_id="S1099")).first()
+                if not user:
+                    user = User(
+                        username="jane_wick_099",
+                        email="jane.wick@edubridge.edu",
+                        full_name="Jane Wick",
+                        public_id="S1099",
+                        role=Role.STUDENT.value,
+                        is_active=True,
+                    )
+                user.username = "jane_wick_099"
+                user.public_id = "S1099"
                 user.role = Role.STUDENT.value
                 user.is_active = True
                 user.set_password("EduBridgeStudent2026!")

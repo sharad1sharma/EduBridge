@@ -31,55 +31,63 @@
     </div>
 
     <!-- Dedicated Privacy & Personal Credential Concealment Controls -->
-    <div class="card" style="margin-top: 1.5rem; border: 1px solid #CBD5E1; border-left: 4px solid var(--brand-primary, #2563EB); background: #F8FAFC; padding: 1.25rem;">
+    <div class="card" style="margin-top: 1.5rem; border: 1px solid var(--border-subtle); border-left: 4px solid var(--brand-primary, #2563EB); background: var(--bg-canvas-subtle, #F8FAFC); padding: 1.25rem;">
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
         <div>
-          <h3 style="margin: 0; font-size: 1rem; color: #0F172A; display: flex; align-items: center; gap: 0.5rem;">
+          <h3 style="margin: 0; font-size: 1rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
             <span>🔒 Personal Information & Credential Privacy Controls</span>
-            <span class="badge badge-active" style="font-size: 0.7rem; background: #EEF2FF; color: #4338CA;">Active Guardrail</span>
+            <span class="badge badge-active" style="font-size: 0.7rem; background: var(--primary-light, #EEF2FF); color: var(--primary, #4338CA);">Active Guardrail</span>
           </h3>
           <p style="margin: 0.35rem 0 0; font-size: 0.825rem; color: var(--text-muted);">
             Conceal your personal credentials from peers, directories, and assistant queries.
             <br>
-            <span style="font-size: 0.75rem; color: #64748B;">• <strong>Immutably Public:</strong> Full Name, Engineering Branch/Department, and Assigned Subjects remain visible for academic integrity.</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">• <strong>Immutably Public:</strong> Full Name, Engineering Branch/Department, and Assigned Subjects remain visible for academic integrity.</span>
           </p>
         </div>
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem;">
         <!-- Email Hide Toggle -->
-        <label style="display: flex; align-items: center; gap: 0.75rem; background: white; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border-subtle); cursor: pointer;">
-          {{ form.hide_email }}
-          <div>
-            <strong style="font-size: 0.875rem; color: #0F172A; display: block;">Hide My Email Address ({{ user.email }})</strong>
-            <span style="font-size: 0.775rem; color: var(--text-muted);">Conceals your email address from public directories, diagnostics, and AI assistant inquiries.</span>
+        <label style="display: flex; align-items: flex-start; gap: 0.85rem; background: var(--surface-card, #FFFFFF); padding: 0.85rem 1.15rem; border-radius: 8px; border: 1px solid var(--border-subtle); cursor: pointer; transition: all 0.15s ease;">
+          <span style="display: inline-flex; align-items: center; justify-content: center; width: 20px; min-width: 20px; padding-top: 2px; flex-shrink: 0;">
+            {{ form.hide_email }}
+          </span>
+          <div style="flex: 1; min-width: 0;">
+            <strong style="font-size: 0.875rem; color: var(--text-main); display: block; margin-bottom: 0.15rem;">Hide My Email Address ({{ user.email }})</strong>
+            <span style="font-size: 0.775rem; color: var(--text-muted); line-height: 1.4; display: block;">Conceals your email address from public directories, diagnostics, and AI assistant inquiries.</span>
           </div>
         </label>
 
         <!-- Phone Hide Toggle -->
-        <label style="display: flex; align-items: center; gap: 0.75rem; background: white; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border-subtle); cursor: pointer;">
-          {{ form.hide_phone }}
-          <div>
-            <strong style="font-size: 0.875rem; color: #0F172A; display: block;">Hide My Phone Number</strong>
-            <span style="font-size: 0.775rem; color: var(--text-muted);">Conceals your phone contact details from public listings and directories.</span>
+        <label style="display: flex; align-items: flex-start; gap: 0.85rem; background: var(--surface-card, #FFFFFF); padding: 0.85rem 1.15rem; border-radius: 8px; border: 1px solid var(--border-subtle); cursor: pointer; transition: all 0.15s ease;">
+          <span style="display: inline-flex; align-items: center; justify-content: center; width: 20px; min-width: 20px; padding-top: 2px; flex-shrink: 0;">
+            {{ form.hide_phone }}
+          </span>
+          <div style="flex: 1; min-width: 0;">
+            <strong style="font-size: 0.875rem; color: var(--text-main); display: block; margin-bottom: 0.15rem;">Hide My Phone Number</strong>
+            <span style="font-size: 0.775rem; color: var(--text-muted); line-height: 1.4; display: block;">Conceals your phone contact details from public listings and directories.</span>
           </div>
         </label>
 
         <!-- Student ID / Teacher ID Hide Toggle -->
         {% if form.hide_student_id %}
-        <label style="display: flex; align-items: center; gap: 0.75rem; background: white; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border-subtle); cursor: pointer;">
-          {{ form.hide_student_id }}
-          <div>
-            <strong style="font-size: 0.875rem; color: #0F172A; display: block;">Hide My Student ID (<span class="mono">{{ user.public_id }}</span>)</strong>
-            <span style="font-size: 0.775rem; color: var(--text-muted);">Hides your student roll ID number from public student rosters and peer search results.</span>
+        <label style="display: flex; align-items: flex-start; gap: 0.85rem; background: var(--surface-card, #FFFFFF); padding: 0.85rem 1.15rem; border-radius: 8px; border: 1px solid var(--border-subtle); cursor: pointer; transition: all 0.15s ease;">
+          <span style="display: inline-flex; align-items: center; justify-content: center; width: 20px; min-width: 20px; padding-top: 2px; flex-shrink: 0;">
+            {{ form.hide_student_id }}
+          </span>
+          <div style="flex: 1; min-width: 0;">
+            <strong style="font-size: 0.875rem; color: var(--text-main); display: block; margin-bottom: 0.15rem;">Hide My Student ID (<span class="mono">{{ user.public_id }}</span>)</strong>
+            <span style="font-size: 0.775rem; color: var(--text-muted); line-height: 1.4; display: block;">Hides your student roll ID number from public student rosters and peer search results.</span>
           </div>
         </label>
         {% elif form.hide_teacher_id %}
-        <label style="display: flex; align-items: center; gap: 0.75rem; background: white; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border-subtle); cursor: pointer;">
-          {{ form.hide_teacher_id }}
-          <div>
-            <strong style="font-size: 0.875rem; color: #0F172A; display: block;">Hide My Teacher ID (<span class="mono">{{ user.public_id }}</span>)</strong>
-            <span style="font-size: 0.775rem; color: var(--text-muted);">Hides your teacher ID number from student directories.</span>
+        <label style="display: flex; align-items: flex-start; gap: 0.85rem; background: var(--surface-card, #FFFFFF); padding: 0.85rem 1.15rem; border-radius: 8px; border: 1px solid var(--border-subtle); cursor: pointer; transition: all 0.15s ease;">
+          <span style="display: inline-flex; align-items: center; justify-content: center; width: 20px; min-width: 20px; padding-top: 2px; flex-shrink: 0;">
+            {{ form.hide_teacher_id }}
+          </span>
+          <div style="flex: 1; min-width: 0;">
+            <strong style="font-size: 0.875rem; color: var(--text-main); display: block; margin-bottom: 0.15rem;">Hide My Teacher ID (<span class="mono">{{ user.public_id }}</span>)</strong>
+            <span style="font-size: 0.775rem; color: var(--text-muted); line-height: 1.4; display: block;">Hides your teacher ID number from student directories.</span>
           </div>
         </label>
         {% endif %}

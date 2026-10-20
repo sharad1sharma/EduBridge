@@ -205,6 +205,17 @@ class Command(BaseCommand):
                 "subjects": ["CS301", "CS302", "CS303", "CS304"],
             },
             {
+                "username": "jane_wick_099",
+                "email": "jane.wick@edubridge.edu",
+                "full_name": "Jane Wick",
+                "public_id": "S1099",
+                "branch": "CSE",
+                "semester": 4,
+                "is_active": True,
+                "password": "EduBridgeStudent2026!",
+                "subjects": ["CS301", "CS302", "CS303", "CS304"],
+            },
+            {
                 "username": "student_suspended",
                 "email": "suspended.demo@edubridge.edu",
                 "full_name": "Vikram Singh (Suspended Demo)",
@@ -232,7 +243,7 @@ class Command(BaseCommand):
             user.role = Role.STUDENT.value
             user.is_active = s_info["is_active"]
             user.public_id = s_info["public_id"]
-            user.set_password("Demo@12345")
+            user.set_password(s_info.get("password", "Demo@12345"))
             user.save()
 
             sp, _ = StudentProfile.objects.get_or_create(
@@ -359,6 +370,11 @@ class Command(BaseCommand):
             (ass2, primary_student, 84.0, now - timedelta(days=3)),
             (ass3, primary_student, 16.0, now - timedelta(days=1)),
             (ass4, primary_student, 18.0, now - timedelta(hours=6)),
+            # Jane Wick attempts
+            (ass1, created_students["jane_wick_099"], 19.0, now - timedelta(days=5)),
+            (ass2, created_students["jane_wick_099"], 88.0, now - timedelta(days=3)),
+            (ass3, created_students["jane_wick_099"], 18.0, now - timedelta(days=1)),
+            (ass4, created_students["jane_wick_099"], 19.0, now - timedelta(hours=4)),
             # Priya Patel attempts
             (ass1, created_students["student_priya"], 16.0, now - timedelta(days=4)),
             (ass2, created_students["student_priya"], 78.0, now - timedelta(days=2)),
@@ -383,67 +399,68 @@ class Command(BaseCommand):
         # 6. ATTENDANCE RECORDS (Past 30 Days)
         # =====================================================================
         self.stdout.write("6. Seeding Attendance Records (Present, Absent, Late, Login)...")
-        # Generate 20 daily lecture records for Rahul Sharma across the 4 subjects
-        for day_offset in range(25, 0, -1):
-            att_date = today - timedelta(days=day_offset)
-            # Pick a rotating subject
-            sub_key = ["CS301", "CS302", "CS303", "CS304"][day_offset % 4]
-            sub_obj = subject_map[sub_key]
+        # Generate 25 daily lecture records for Rahul Sharma & Jane Wick across the 4 subjects
+        active_demo_cohort = [primary_student, created_students["jane_wick_099"]]
+        for cur_st in active_demo_cohort:
+            for day_offset in range(25, 0, -1):
+                att_date = today - timedelta(days=day_offset)
+                sub_key = ["CS301", "CS302", "CS303", "CS304"][day_offset % 4]
+                sub_obj = subject_map[sub_key]
 
-            # Realistic distribution: 20 present, 2 late, 3 absent
-            if day_offset in [7, 18]:
-                status_val = AttendanceRecord.Status.ABSENT
-                remarks = "Absent from class session"
-            elif day_offset in [12]:
-                status_val = AttendanceRecord.Status.LATE
-                remarks = "Joined 15 minutes late"
-            else:
-                status_val = AttendanceRecord.Status.PRESENT
-                remarks = "Verified biometric / session log"
+                # Realistic distribution: 20 present, 2 late, 3 absent
+                if day_offset in [7, 18]:
+                    status_val = AttendanceRecord.Status.ABSENT
+                    remarks = "Absent from class session"
+                elif day_offset in [12]:
+                    status_val = AttendanceRecord.Status.LATE
+                    remarks = "Joined 15 minutes late"
+                else:
+                    status_val = AttendanceRecord.Status.PRESENT
+                    remarks = "Verified biometric / session log"
 
+                AttendanceRecord.objects.get_or_create(
+                    student=cur_st,
+                    subject=sub_obj,
+                    date=att_date,
+                    session_type=AttendanceRecord.SessionType.CLASS,
+                    defaults={
+                        "session_title": f"{sub_obj.code} Lecture: {sub_obj.title}",
+                        "status": status_val,
+                        "recorded_by": primary_teacher,
+                        "is_auto_marked": False,
+                        "remarks": remarks,
+                    }
+                )
+
+                # Platform activity record
+                AttendanceRecord.objects.get_or_create(
+                    student=cur_st,
+                    subject=None,
+                    date=att_date,
+                    session_type=AttendanceRecord.SessionType.PLATFORM_LOGIN,
+                    defaults={
+                        "session_title": "Daily Platform Login Activity",
+                        "status": AttendanceRecord.Status.PRESENT,
+                        "recorded_by": cur_st,
+                        "is_auto_marked": True,
+                        "remarks": "Daily verified student login session",
+                    }
+                )
+
+            # Today's platform login
             AttendanceRecord.objects.get_or_create(
-                student=primary_student,
-                subject=sub_obj,
-                date=att_date,
-                session_type=AttendanceRecord.SessionType.CLASS,
-                defaults={
-                    "session_title": f"{sub_obj.code} Lecture: {sub_obj.title}",
-                    "status": status_val,
-                    "recorded_by": primary_teacher,
-                    "is_auto_marked": False,
-                    "remarks": remarks,
-                }
-            )
-
-            # Platform activity record
-            AttendanceRecord.objects.get_or_create(
-                student=primary_student,
+                student=cur_st,
                 subject=None,
-                date=att_date,
+                date=today,
                 session_type=AttendanceRecord.SessionType.PLATFORM_LOGIN,
                 defaults={
                     "session_title": "Daily Platform Login Activity",
                     "status": AttendanceRecord.Status.PRESENT,
-                    "recorded_by": primary_student,
+                    "recorded_by": cur_st,
                     "is_auto_marked": True,
-                    "remarks": "Daily verified student login session",
+                    "remarks": "Daily student platform activity",
                 }
             )
-
-        # Today's platform login for primary student
-        AttendanceRecord.objects.get_or_create(
-            student=primary_student,
-            subject=None,
-            date=today,
-            session_type=AttendanceRecord.SessionType.PLATFORM_LOGIN,
-            defaults={
-                "session_title": "Daily Platform Login Activity",
-                "status": AttendanceRecord.Status.PRESENT,
-                "recorded_by": primary_student,
-                "is_auto_marked": True,
-                "remarks": "Daily student platform activity",
-            }
-        )
 
         # =====================================================================
         # 7. LEARNING RESOURCES WITH THUMBNAILS
@@ -584,12 +601,35 @@ class Command(BaseCommand):
                 }
             )
 
+        PlatformNotification.objects.update_or_create(
+            recipient=created_students["jane_wick_099"],
+            title="Academic Assessment Published: Graph Traversal",
+            defaults={
+                "message": "Prof. Sharma published Daily Practice 05: Graph Traversal & Topological Sort. Complete before deadline.",
+                "notification_type": PlatformNotification.NotificationType.ASSIGNMENT,
+                "link": "/student/results/",
+                "is_read": False,
+            }
+        )
+        PlatformNotification.objects.update_or_create(
+            recipient=created_students["jane_wick_099"],
+            title="Verified Attendance Record",
+            defaults={
+                "message": "Your attendance was verified for CS301 Lecture Session with 85.0% overall semester standing.",
+                "notification_type": PlatformNotification.NotificationType.PLATFORM,
+                "link": "/student/attendance/",
+                "is_read": True,
+            }
+        )
+
         self.stdout.write(self.style.SUCCESS("[SUCCESS] EduBridge Demo Dataset successfully seeded!"))
         self.stdout.write(self.style.SUCCESS(
             "Demo Credentials:\n"
+            "  - Student: jane_wick_099 / EduBridgeStudent2026! (S1099, CSE Sem 4, enrolled in 4 subjects)\n"
             "  - Student: student_rahul / Demo@12345 (S1001, CSE Sem 3, enrolled in 4 subjects)\n"
             "  - Student: student_priya / Demo@12345 (S1002, CSE Sem 3)\n"
-            "  - Teacher: prof_sharma / Demo@12345 (T2001, HOD CSE)\n"
+            "  - Teacher: prof_sharma / EduBridgeTeacher2026! (T1001, HOD CSE)\n"
             "  - Teacher: prof_verma / Demo@12345 (T2002, Associate Prof)\n"
+            "  - Administrator: admin / EduBridgeAdmin2026!\n"
             "  - Suspended Student: student_suspended / Demo@12345 (S1009, for admin inspection)\n"
         ))

@@ -4,6 +4,8 @@
 
 # EduBridge — AI-Powered Educational Web Platform for B.Tech Students
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/sharad1sharma/EduBridge)
+
 EduBridge is a comprehensive, production-grade educational web application tailored for B.Tech engineering students in India across 11 disciplines (CSE, IT, AI & Data Science, ECE, Electrical, Mechanical, Civil, Chemical, Biotechnology, Aerospace, and First-Year Common Engineering).
 
 ---

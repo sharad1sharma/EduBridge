@@ -14,6 +14,7 @@ import json
 from datetime import timedelta
 from django.contrib import messages
 from django.core.paginator import Paginator
+from django.db.models import Q
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -98,8 +99,11 @@ def student_dashboard(request):
     ).distinct().select_related("host_teacher", "subject").order_by("scheduled_at")[:5]
 
     # Published Resources
+    from dashboards.resource_service import ensure_default_learning_resources
+    ensure_default_learning_resources()
+
     recent_resources = LearningResource.objects.filter(
-        Q(branch=branch, semester=semester) | Q(subject_id__in=enrolled_subject_ids),
+        Q(branch=branch) | Q(subject_id__in=enrolled_subject_ids),
         status=LearningResource.Status.PUBLISHED
     ).distinct().select_related("subject", "author").order_by("-created_at")[:6]
 
@@ -385,23 +389,31 @@ def student_resources(request):
     if request.method not in ["GET", "HEAD"]:
         return HttpResponseForbidden("Students cannot create, edit, or delete learning resources.")
 
+    from dashboards.resource_service import ensure_default_learning_resources
+    ensure_default_learning_resources()
+
     student = request.user
     profile = getattr(student, "student_profile", None)
     branch = profile.branch if profile else "CSE"
     semester = profile.semester if profile else 1
+    enrolled_subject_ids = list(student.enrolled_subjects.values_list("id", flat=True))
 
     qs = LearningResource.objects.filter(
         status=LearningResource.Status.PUBLISHED
     ).select_related("subject", "author").order_by("-created_at")
 
     # Filters
-    b_filter = request.GET.get("branch", branch)
-    sem_filter = request.GET.get("semester", str(semester))
+    b_filter = request.GET.get("branch", "")
+    sem_filter = request.GET.get("semester", "")
     type_filter = request.GET.get("type", "")
     q = request.GET.get("q", "").strip()
 
     if b_filter:
         qs = qs.filter(branch=b_filter)
+    else:
+        # Default view: show resources from student's branch OR any of student's enrolled subjects
+        qs = qs.filter(Q(branch=branch) | Q(subject_id__in=enrolled_subject_ids))
+
     if sem_filter:
         try:
             qs = qs.filter(semester=int(sem_filter))
@@ -410,14 +422,20 @@ def student_resources(request):
     if type_filter:
         qs = qs.filter(resource_type=type_filter)
     if q:
-        qs = qs.filter(title__icontains=q)
+        qs = qs.filter(
+            Q(title__icontains=q)
+            | Q(topic__icontains=q)
+            | Q(description__icontains=q)
+            | Q(subject__code__icontains=q)
+            | Q(subject__title__icontains=q)
+        )
 
     page = Paginator(qs, 15).get_page(request.GET.get("page"))
     branches = AcademicBranch.objects.filter(is_archived=False)
 
     context = {
         "page": page,
-        "branch": b_filter,
+        "branch": b_filter or branch,
         "semester": sem_filter,
         "type": type_filter,
         "q": q,

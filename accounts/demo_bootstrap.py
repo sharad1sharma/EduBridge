@@ -15,8 +15,8 @@ DEMO_ACCOUNTS = {
         "full_name": "Institution Administrator",
         "role": Role.ADMIN.value,
         "public_id": None,
-        "aliases": ["admin", "admin@edubridge.edu"],
-        "passwords": ["EduBridgeAdmin2026!", "Demo@12345", "AdminPassword123!"],
+        "aliases": ["admin", "admin@edubridge.edu", "a1001"],
+        "passwords": ["EduBridgeAdmin2026!", "Demo@12345", "AdminPassword123!", "admin123"],
     },
     "prof_sharma": {
         "username": "prof_sharma",
@@ -24,7 +24,14 @@ DEMO_ACCOUNTS = {
         "full_name": "Prof. Rajesh Sharma",
         "role": Role.TEACHER.value,
         "public_id": "T1001",
-        "aliases": ["prof_sharma", "t1001", "t2001", "sharma@edubridge.edu"],
+        "aliases": [
+            "prof_sharma",
+            "t1001",
+            "t2001",
+            "sharma@edubridge.edu",
+            "prof.sharma@edubridge.edu",
+            "teacher@edubridge.edu",
+        ],
         "passwords": ["EduBridgeTeacher2026!", "Demo@12345", "TeacherPass123!"],
         "profile": {
             "department": "CSE",
@@ -136,7 +143,7 @@ def ensure_demo_user(identifier: str) -> User | None:
             user=user,
             defaults=cfg.get("profile", {"branch": "CSE", "semester": 3}),
         )
-        for s in Subject.objects.filter(code__in=["CS301", "CS302", "CS303", "CS304"]):
+        for s in Subject.objects.filter(code__in=["CS301", "CS302", "CS303", "CS304", "MATHS1"]):
             user.enrolled_subjects.add(s)
     elif cfg["role"] == Role.TEACHER.value:
         TeacherProfile.objects.get_or_create(

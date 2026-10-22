@@ -37,14 +37,6 @@
     <span id="roleNoticeText"><strong>Student Portal:</strong> Enter your Student ID (e.g. <span class="mono">S1001</span>), username, or registered email.</span>
   </div>
 
-  <!-- Interactive Demo Quick-Fill Bar -->
-  <div id="demoQuickFillBox" style="margin-bottom: 1.25rem; padding: 0.65rem 0.85rem; background: var(--bg-surface-alt, #F8FAFC); border: 1px dashed var(--border-subtle, #CBD5E1); border-radius: var(--radius-md); font-size: 0.8rem;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.45rem;">
-      <span style="font-weight: 600; color: var(--text-main); font-size: 0.785rem;">⚡ 1-Click Demo Login:</span>
-      <span style="font-size: 0.725rem; color: var(--text-muted);">Click to auto-fill</span>
-    </div>
-    <div id="demoQuickChips" style="display: flex; gap: 0.4rem; flex-wrap: wrap;"></div>
-  </div>
 
   <!-- Main Login Form -->
   <form method="post" novalidate id="loginForm">{% csrf_token %}

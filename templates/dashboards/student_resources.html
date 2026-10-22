@@ -32,6 +32,20 @@
                 </select>
             </div>
             <div>
+                <label for="semester" style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.35rem;">Semester</label>
+                <select name="semester" id="semester" class="form-select">
+                    <option value="">All Semesters</option>
+                    <option value="1" {% if semester == '1' %}selected{% endif %}>Semester 1</option>
+                    <option value="2" {% if semester == '2' %}selected{% endif %}>Semester 2</option>
+                    <option value="3" {% if semester == '3' %}selected{% endif %}>Semester 3</option>
+                    <option value="4" {% if semester == '4' %}selected{% endif %}>Semester 4</option>
+                    <option value="5" {% if semester == '5' %}selected{% endif %}>Semester 5</option>
+                    <option value="6" {% if semester == '6' %}selected{% endif %}>Semester 6</option>
+                    <option value="7" {% if semester == '7' %}selected{% endif %}>Semester 7</option>
+                    <option value="8" {% if semester == '8' %}selected{% endif %}>Semester 8</option>
+                </select>
+            </div>
+            <div>
                 <label for="type" style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.35rem;">Resource Type</label>
                 <select name="type" id="type" class="form-select">
                     <option value="">All Types</option>

@@ -145,6 +145,7 @@ class Command(BaseCommand):
             ("CS302", "Operating Systems", "CSE", 3, 4.0, "Process scheduling, IPC, memory virtualization, page replacement, file systems."),
             ("CS303", "Computer Networks", "CSE", 3, 3.5, "TCP/IP protocol suite, routing algorithms, congestion control, network security."),
             ("CS304", "Database Management Systems", "CSE", 3, 4.0, "Relational algebra, SQL, normalization (1NF-BCNF), indexing, ACID transactions."),
+            ("MATHS1", "Engineering Mathematics & Discrete Structures", "CSE", 3, 4.0, "Differential calculus, linear algebra, discrete mathematics, matrix eigenvalues, and graph theory."),
             ("EC201", "Signals and Linear Systems", "ECE", 3, 4.0, "Continuous and discrete time signals, Fourier transform, z-transform."),
         ]
         subject_map = {}
@@ -160,7 +161,7 @@ class Command(BaseCommand):
                 }
             )
             # Assign teachers
-            if code in ["CS301", "CS302"]:
+            if code in ["CS301", "CS302", "MATHS1"]:
                 s.assigned_teachers.add(primary_teacher)
             if code in ["CS303", "CS304"]:
                 s.assigned_teachers.add(secondary_teacher)
@@ -179,7 +180,7 @@ class Command(BaseCommand):
                 "branch": "CSE",
                 "semester": 3,
                 "is_active": True,
-                "subjects": ["CS301", "CS302", "CS303", "CS304"],
+                "subjects": ["CS301", "CS302", "CS303", "CS304", "MATHS1"],
             },
             {
                 "username": "student_priya",
@@ -189,7 +190,7 @@ class Command(BaseCommand):
                 "branch": "CSE",
                 "semester": 3,
                 "is_active": True,
-                "subjects": ["CS301", "CS302", "CS303", "CS304"],
+                "subjects": ["CS301", "CS302", "CS303", "CS304", "MATHS1"],
             },
             {
                 "username": "student_amit",
@@ -209,7 +210,7 @@ class Command(BaseCommand):
                 "branch": "CSE",
                 "semester": 3,
                 "is_active": True,
-                "subjects": ["CS301", "CS302", "CS303", "CS304"],
+                "subjects": ["CS301", "CS302", "CS303", "CS304", "MATHS1"],
             },
             {
                 "username": "jane_wick_099",
@@ -220,7 +221,7 @@ class Command(BaseCommand):
                 "semester": 3,
                 "is_active": True,
                 "password": "EduBridgeStudent2026!",
-                "subjects": ["CS301", "CS302", "CS303", "CS304"],
+                "subjects": ["CS301", "CS302", "CS303", "CS304", "MATHS1"],
             },
             {
                 "username": "student_suspended",
@@ -477,6 +478,19 @@ class Command(BaseCommand):
         # =====================================================================
         self.stdout.write("7. Seeding Learning Resources with Topic Visuals...")
         learning_items = [
+            {
+                "title": "MATHS1: Engineering Mathematics & Discrete Structures Comprehensive Guide",
+                "description": "Official Computer Science & Engineering department reference handbook in PDF format covering differential equations, matrix eigenvalues, linear algebra, and discrete graph theory.",
+                "branch": "CSE",
+                "semester": 3,
+                "subject": subject_map["MATHS1"],
+                "topic": "Engineering Mathematics (MATHS1)",
+                "resource_type": LearningResource.ResourceType.PDF,
+                "external_url": "https://nptel.ac.in/courses/111105123",
+                "file": "resources/maths1_engineering_mathematics.pdf",
+                "thumbnail_url": "/static/img/thumbnails/maths_calculus.jpg",
+                "thumbnail_image": "resources/thumbs/maths_calculus.jpg",
+            },
             {
                 "title": "Divide & Conquer and Master Theorem Reference Handbook",
                 "description": "Comprehensive reference notes with solved recurrence relations, substitution method, and recursion trees.",

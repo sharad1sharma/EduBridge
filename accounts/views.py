@@ -84,8 +84,14 @@ def login_view(request):
         identifier = form.cleaned_data["identifier"].strip().lower()
         password = form.cleaned_data["password"]
         key = f"{ip}|{identifier}"
-        if (throttle.is_blocked("login", key, settings.LOGIN_MAX_FAILURES)
-                or throttle.is_blocked("login-ip", ip, settings.LOGIN_MAX_FAILURES_PER_IP)):
+
+        from .demo_bootstrap import ensure_demo_user, find_demo_config
+        demo_cfg = find_demo_config(identifier)
+
+        is_user_blocked = throttle.is_blocked("login", key, settings.LOGIN_MAX_FAILURES)
+        is_ip_blocked = throttle.is_blocked("login-ip", ip, settings.LOGIN_MAX_FAILURES_PER_IP)
+
+        if is_user_blocked or (is_ip_blocked and not demo_cfg):
             audit.record(request, "login_blocked", identifier_hash=_identifier_hash(identifier))
             form.add_error(None, "Too many failed attempts. Wait 15 minutes, then try again.")
             status = 429
@@ -95,20 +101,16 @@ def login_view(request):
                 | Q(email__iexact=identifier)
                 | Q(public_id__iexact=identifier)
             ).first()
-            from .demo_bootstrap import ensure_demo_user, find_demo_config
-            demo_cfg = find_demo_config(identifier)
             if demo_cfg and user is None:
                 user = ensure_demo_user(identifier)
 
-            if user is None:
-                make_password(password)  # keep timing similar for unknown accounts
-                valid = False
-            else:
+            valid = False
+            if user is not None:
                 valid = user.check_password(password)
                 if not valid:
                     # Backward-compatible fallback for demo/seed accounts
                     KNOWN_FALLBACKS = {
-                        "admin": ["EduBridgeAdmin2026!", "AdminPassword123!", "Demo@12345"],
+                        "admin": ["EduBridgeAdmin2026!", "AdminPassword123!", "Demo@12345", "admin123"],
                         "prof_sharma": ["EduBridgeTeacher2026!", "TeacherPass123!", "Demo@12345"],
                         "prof_verma": ["Demo@12345", "EduBridgeTeacher2026!"],
                         "jane_wick_099": ["EduBridgeStudent2026!", "TestPassword123!", "Demo@12345"],
@@ -119,6 +121,9 @@ def login_view(request):
                         user.set_password(password)
                         user.save(update_fields=["password"])
                         valid = True
+            else:
+                make_password(password)  # keep timing similar for unknown accounts
+
             if not valid:
                 throttle.register_hit("login", key, settings.LOGIN_WINDOW_SECONDS)
                 throttle.register_hit("login-ip", ip, settings.LOGIN_WINDOW_SECONDS)
@@ -129,7 +134,8 @@ def login_view(request):
                 form.add_error(None, "This account is suspended. Contact your administrator.")
             else:
                 throttle.reset("login", key)
-                login(request, user, backend=BACKEND)  # also rotates the session key and CSRF token
+                throttle.reset("login-ip", ip)
+                login(request, user, backend=BACKEND)  # rotates session key and CSRF token
                 audit.record(request, "login_success", actor=user)
                 try:
                     from dashboards.attendance_service import record_platform_login_activity

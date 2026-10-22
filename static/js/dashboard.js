@@ -619,60 +619,11 @@
       const roleIcon = document.getElementById('roleIcon');
       const roleNoticeText = document.getElementById('roleNoticeText');
       const idInput = document.getElementById('id_identifier') || document.querySelector('input[name="identifier"]');
-      const pwInput = document.getElementById('id_password') || document.querySelector('input[name="password"]');
-
-      const demoAccountsByRole = {
-        student: [
-          { label: '🎓 Rahul (S1001)', user: 'student_rahul', pass: 'Demo@12345' },
-          { label: '🎓 Jane (S1099)', user: 'jane_wick_099', pass: 'EduBridgeStudent2026!' },
-          { label: '🎓 Priya (S1002)', user: 'student_priya', pass: 'Demo@12345' }
-        ],
-        teacher: [
-          { label: '👨‍🏫 Prof. Sharma (T1001)', user: 'prof_sharma', pass: 'EduBridgeTeacher2026!' },
-          { label: '👨‍🏫 Dr. Verma (T1002)', user: 'prof_verma', pass: 'Demo@12345' }
-        ],
-        admin: [
-          { label: '🛡️ Administrator (admin)', user: 'admin', pass: 'EduBridgeAdmin2026!' }
-        ]
-      };
-
-      function renderDemoChips(role) {
-        const container = document.getElementById('demoQuickChips');
-        if (!container) return;
-        container.innerHTML = '';
-        const list = demoAccountsByRole[role] || [];
-        list.forEach(item => {
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = 'btn small';
-          btn.style.cssText = 'padding: 0.25rem 0.6rem; font-size: 0.775rem; border-radius: 6px; cursor: pointer; background: var(--bg-surface, #fff); border: 1px solid var(--border-subtle, #CBD5E1); color: var(--text-main); font-weight: 500; transition: all 0.15s ease;';
-          btn.innerHTML = `${item.label} <span style="color: #6366F1; font-size: 0.7rem; font-weight: 600; margin-left: 0.15rem;">⚡ Fill</span>`;
-          btn.addEventListener('click', function () {
-            if (idInput) {
-              idInput.value = item.user;
-              idInput.dispatchEvent(new Event('input', { bubbles: true }));
-            }
-            if (pwInput) {
-              pwInput.value = item.pass;
-              pwInput.dispatchEvent(new Event('input', { bubbles: true }));
-            }
-            btn.style.borderColor = '#10B981';
-            btn.style.background = '#ECFDF5';
-            setTimeout(() => {
-              btn.style.borderColor = '';
-              btn.style.background = '';
-            }, 800);
-          });
-          container.appendChild(btn);
-        });
-      }
-
       roleButtons.forEach(btn => {
         btn.addEventListener('click', function () {
           roleButtons.forEach(b => b.classList.remove('active'));
           this.classList.add('active');
           const role = this.getAttribute('data-role-tab');
-          renderDemoChips(role);
           if (role === 'student') {
             if (submitBtn) submitBtn.innerText = 'Sign in as Student';
             if (roleIcon) roleIcon.innerText = '🎓';
@@ -691,11 +642,6 @@
           }
         });
       });
-
-      // Initial chip population
-      renderDemoChips('student');
-
-
     }
 
     // 7. Interactive Administration Suite & Roadmap Modals

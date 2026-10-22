@@ -53,6 +53,9 @@ if not ALLOWED_HOSTS:
     else:
         ALLOWED_HOSTS = [".onrender.com", "localhost", "127.0.0.1", "[::1]"]
 
+if "testserver" not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append("testserver")
+
 RENDER_EXTERNAL_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
 if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
@@ -177,7 +180,7 @@ SECURE_HSTS_SECONDS = int(os.environ.get("DJANGO_HSTS_SECONDS", 0))
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = "same-origin"
 X_FRAME_OPTIONS = "DENY"
-if env_bool("DJANGO_BEHIND_TLS_PROXY", False):
+if env_bool("DJANGO_BEHIND_TLS_PROXY", False) or os.environ.get("RENDER"):
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # --- Email (password reset). Console backend prints emails in development. ------

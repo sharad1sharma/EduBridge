@@ -9,7 +9,7 @@ FIRST_NUMBER = 1001
 
 
 def allocate_public_id(role: str) -> str:
-    """Return the next S#### / T#### ID. Must run inside the caller's transaction so the
+    """Return the next available S#### / T#### ID. Must run inside the caller's transaction so the
     row lock is held until the user row is committed."""
     prefix = ID_PREFIX.get(str(role))
     if prefix is None:
@@ -18,12 +18,20 @@ def allocate_public_id(role: str) -> str:
         sequence, _ = IdSequence.objects.select_for_update().get_or_create(
             prefix=prefix, defaults={"last_value": FIRST_NUMBER - 1}
         )
-        if sequence.last_value >= 9999:
-            raise RuntimeError(f"Available 4-digit ID range for {prefix} has been exhausted.")
-        sequence.last_value = F("last_value") + 1
-        sequence.save(update_fields=["last_value"])
-        sequence.refresh_from_db()
-        return f"{prefix}{sequence.last_value}"
+        if sequence.last_value < FIRST_NUMBER - 1:
+            sequence.last_value = FIRST_NUMBER - 1
+            sequence.save(update_fields=["last_value"])
+            sequence.refresh_from_db()
+
+        while True:
+            if sequence.last_value >= 9999:
+                raise RuntimeError(f"Available 4-digit ID range for {prefix} has been exhausted.")
+            sequence.last_value = F("last_value") + 1
+            sequence.save(update_fields=["last_value"])
+            sequence.refresh_from_db()
+            candidate = f"{prefix}{sequence.last_value}"
+            if not User.objects.filter(public_id=candidate).exists():
+                return candidate
 
 
 def create_user(*, role, username, email, full_name, password,
@@ -44,7 +52,16 @@ def create_user(*, role, username, email, full_name, password,
         user.set_password(password)
         user.save()
         if role == Role.STUDENT.value:
-            StudentProfile.objects.create(user=user, **(profile or {}))
+            sp = StudentProfile.objects.create(user=user, **(profile or {}))
+            # Auto-enroll newly created student into available curriculum subjects
+            from dashboards.models import Subject
+            branch = getattr(sp, "branch", "CSE")
+            semester = getattr(sp, "semester", 1)
+            cohort_subjects = Subject.objects.filter(branch=branch, semester=semester)
+            if not cohort_subjects.exists():
+                cohort_subjects = Subject.objects.filter(branch=branch)
+            if cohort_subjects.exists():
+                user.enrolled_subjects.add(*cohort_subjects)
         elif role == Role.TEACHER.value:
             TeacherProfile.objects.create(user=user, **(profile or {}))
     return user

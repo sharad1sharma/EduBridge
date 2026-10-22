@@ -49,10 +49,15 @@ def student_dashboard(request):
 
     now = timezone.now()
 
+    # Enrolled Subjects (authoritatively resolved)
+    from dashboards.analytics_service import get_student_enrolled_subjects
+    subjects = get_student_enrolled_subjects(student)
+    enrolled_subject_ids = list(subjects.values_list("id", flat=True))
+
     # Assessments (Daily Assignments & Weekly Tests)
     from django.db.models import Q
     assessments_qs = Assessment.objects.filter(
-        Q(branch=branch, semester=semester) | Q(target_students=student),
+        Q(branch=branch, semester=semester) | Q(target_students=student) | Q(subject_id__in=enrolled_subject_ids),
         status__in=[Assessment.Status.PUBLISHED, Assessment.Status.SCHEDULED]
     ).distinct().select_related("subject", "created_by").order_by("deadline")
 
@@ -87,20 +92,21 @@ def student_dashboard(request):
 
     # Live Meetings
     upcoming_meetings = Meeting.objects.filter(
-        branch=branch,
-        semester=semester,
+        Q(branch=branch, semester=semester) | Q(subject_id__in=enrolled_subject_ids),
         status__in=[Meeting.Status.SCHEDULED, Meeting.Status.ONGOING],
         scheduled_at__gte=now - timedelta(hours=2)
-    ).select_related("host_teacher", "subject").order_by("scheduled_at")[:5]
+    ).distinct().select_related("host_teacher", "subject").order_by("scheduled_at")[:5]
 
     # Published Resources
     recent_resources = LearningResource.objects.filter(
-        branch=branch,
-        semester=semester,
+        Q(branch=branch, semester=semester) | Q(subject_id__in=enrolled_subject_ids),
         status=LearningResource.Status.PUBLISHED
-    ).select_related("subject", "author").order_by("-created_at")[:6]
+    ).distinct().select_related("subject", "author").order_by("-created_at")[:6]
 
     # Published Scholarships with Eligibility Check
+    from dashboards.scholarship_service import ensure_default_scholarships
+    ensure_default_scholarships()
+
     scholarships_qs = Scholarship.objects.filter(
         status=Scholarship.Status.PUBLISHED
     ).order_by("deadline")[:4]
@@ -114,10 +120,6 @@ def student_dashboard(request):
             "branch_match": branch_match,
             "is_eligible": branch_match and cgpa_match,
         })
-
-    # Enrolled Subjects (authoritatively resolved)
-    from dashboards.analytics_service import get_student_enrolled_subjects
-    subjects = get_student_enrolled_subjects(student)
 
     # Unread Notifications
     notifications_qs = PlatformNotification.objects.filter(
@@ -433,6 +435,9 @@ def student_scholarships(request):
     student = request.user
     profile = getattr(student, "student_profile", None)
     branch = profile.branch if profile else "CSE"
+
+    from dashboards.scholarship_service import ensure_default_scholarships
+    ensure_default_scholarships()
 
     qs = Scholarship.objects.filter(status=Scholarship.Status.PUBLISHED).order_by("deadline")
     scholarships = []

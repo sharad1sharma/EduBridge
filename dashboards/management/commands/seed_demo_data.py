@@ -210,7 +210,7 @@ class Command(BaseCommand):
                 "full_name": "Jane Wick",
                 "public_id": "S1099",
                 "branch": "CSE",
-                "semester": 4,
+                "semester": 3,
                 "is_active": True,
                 "password": "EduBridgeStudent2026!",
                 "subjects": ["CS301", "CS302", "CS303", "CS304"],
@@ -622,10 +622,26 @@ class Command(BaseCommand):
             }
         )
 
+        # =====================================================================
+        # 10. VERIFIED SCHOLARSHIPS & FINANCIAL GRANTS
+        # =====================================================================
+        self.stdout.write("10. Seeding Verified Engineering Scholarships...")
+        from dashboards.scholarship_service import ensure_default_scholarships
+        ensure_default_scholarships()
+
+        # =====================================================================
+        # 11. SYNCHRONIZE ID SEQUENCES
+        # =====================================================================
+        self.stdout.write("11. Synchronizing ID Sequences for Public Signups...")
+        from accounts.models import IdSequence
+        IdSequence.objects.update_or_create(prefix="S", defaults={"last_value": 1100})
+        IdSequence.objects.update_or_create(prefix="T", defaults={"last_value": 2010})
+        IdSequence.objects.get_or_create(prefix="A", defaults={"last_value": 0})
+
         self.stdout.write(self.style.SUCCESS("[SUCCESS] EduBridge Demo Dataset successfully seeded!"))
         self.stdout.write(self.style.SUCCESS(
             "Demo Credentials:\n"
-            "  - Student: jane_wick_099 / EduBridgeStudent2026! (S1099, CSE Sem 4, enrolled in 4 subjects)\n"
+            "  - Student: jane_wick_099 / EduBridgeStudent2026! (S1099, CSE Sem 3, enrolled in 4 subjects)\n"
             "  - Student: student_rahul / Demo@12345 (S1001, CSE Sem 3, enrolled in 4 subjects)\n"
             "  - Student: student_priya / Demo@12345 (S1002, CSE Sem 3)\n"
             "  - Teacher: prof_sharma / EduBridgeTeacher2026! (T1001, HOD CSE)\n"

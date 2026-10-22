@@ -5,8 +5,15 @@ _FORBIDDEN_KEYS = {"password", "new_password", "old_password", "token", "secret"
 
 
 def client_ip(request):
-    """Remote address as seen by the server. X-Forwarded-For is deliberately NOT trusted
-    here (it is client-controlled unless a trusted proxy overwrites it)."""
+    """Remote address as seen by the server. When operating behind a trusted TLS proxy
+    (e.g., Render), parses the originating client IP from X-Forwarded-For."""
+    if request is None:
+        return None
+    from django.conf import settings
+    if getattr(settings, "SECURE_PROXY_SSL_HEADER", None) or getattr(settings, "RENDER_EXTERNAL_HOSTNAME", None):
+        xff = request.META.get("HTTP_X_FORWARDED_FOR")
+        if xff:
+            return xff.split(",")[0].strip()
     return request.META.get("REMOTE_ADDR") or None
 
 

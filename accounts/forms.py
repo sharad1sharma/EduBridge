@@ -41,7 +41,11 @@ class StudentSignupForm(forms.Form):
     semester = forms.TypedChoiceField(
         choices=[("", "Select your semester")] + SEMESTER_CHOICES, coerce=int
     )
-    password1 = forms.CharField(label="Password", widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}))
+    password1 = forms.CharField(
+        label="Password",
+        help_text="At least 10 characters.",
+        widget=forms.PasswordInput(attrs={"autocomplete": "new-password"})
+    )
     password2 = forms.CharField(label="Confirm password", widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}))
 
     def clean_full_name(self):

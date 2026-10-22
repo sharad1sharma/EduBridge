@@ -116,7 +116,7 @@ def login_view(request):
                 from dashboards.models import StudentProfile, Subject
                 StudentProfile.objects.get_or_create(
                     user=user,
-                    defaults={"branch": "CSE", "semester": 4, "academic_details": "Roll: S1099. B.Tech Computer Science cohort."}
+                    defaults={"branch": "CSE", "semester": 3, "academic_details": "Roll: S1099. B.Tech Computer Science cohort."}
                 )
                 for s in Subject.objects.filter(code__in=["CS301", "CS302", "CS303", "CS304"]):
                     user.enrolled_subjects.add(s)

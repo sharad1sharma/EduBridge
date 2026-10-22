@@ -74,7 +74,8 @@ class Command(BaseCommand):
                 "username": "prof_sharma",
                 "email": "sharma@edubridge.edu",
                 "full_name": "Prof. Rajesh Sharma",
-                "public_id": "T2001",
+                "public_id": "T1001",
+                "password": "EduBridgeTeacher2026!",
                 "department": "CSE",
                 "designation": "Professor & Head of Department",
                 "specialization": "Data Structures & Algorithm Design",
@@ -83,7 +84,8 @@ class Command(BaseCommand):
                 "username": "prof_verma",
                 "email": "verma@edubridge.edu",
                 "full_name": "Dr. Sunita Verma",
-                "public_id": "T2002",
+                "public_id": "T1002",
+                "password": "Demo@12345",
                 "department": "CSE",
                 "designation": "Associate Professor",
                 "specialization": "Operating Systems & Distributed Computing",
@@ -92,7 +94,8 @@ class Command(BaseCommand):
                 "username": "prof_reddy",
                 "email": "reddy@edubridge.edu",
                 "full_name": "Prof. K. V. Reddy",
-                "public_id": "T2003",
+                "public_id": "T1003",
+                "password": "Demo@12345",
                 "department": "ECE",
                 "designation": "Assistant Professor",
                 "specialization": "Signals, Systems & Embedded IoT",
@@ -100,9 +103,11 @@ class Command(BaseCommand):
         ]
         created_teachers = {}
         for t_info in teachers_data:
-            user = User.objects.filter(public_id=t_info["public_id"]).first()
+            user = User.objects.filter(username=t_info["username"]).first()
             if not user:
-                user = User.objects.filter(username=t_info["username"]).first()
+                user = User.objects.filter(email=t_info["email"]).first()
+            if not user:
+                user = User.objects.filter(public_id=t_info["public_id"]).first()
             if not user:
                 user = User(
                     username=t_info["username"],
@@ -112,8 +117,10 @@ class Command(BaseCommand):
             user.email = t_info["email"]
             user.role = Role.TEACHER.value
             user.is_active = True
-            user.public_id = t_info["public_id"]
-            user.set_password("Demo@12345")
+            # Safely allocate public_id if not claimed by another account
+            if not User.objects.exclude(pk=user.pk).filter(public_id=t_info["public_id"]).exists():
+                user.public_id = t_info["public_id"]
+            user.set_password(t_info.get("password", "EduBridgeTeacher2026!"))
             user.save()
 
             tp, _ = TeacherProfile.objects.get_or_create(
@@ -229,9 +236,11 @@ class Command(BaseCommand):
 
         created_students = {}
         for s_info in students_data:
-            user = User.objects.filter(public_id=s_info["public_id"]).first()
+            user = User.objects.filter(username=s_info["username"]).first()
             if not user:
-                user = User.objects.filter(username=s_info["username"]).first()
+                user = User.objects.filter(email=s_info["email"]).first()
+            if not user:
+                user = User.objects.filter(public_id=s_info["public_id"]).first()
             if not user:
                 user = User(
                     username=s_info["username"],
@@ -242,7 +251,8 @@ class Command(BaseCommand):
             user.email = s_info["email"]
             user.role = Role.STUDENT.value
             user.is_active = s_info["is_active"]
-            user.public_id = s_info["public_id"]
+            if not User.objects.exclude(pk=user.pk).filter(public_id=s_info["public_id"]).exists():
+                user.public_id = s_info["public_id"]
             user.set_password(s_info.get("password", "Demo@12345"))
             user.save()
 
@@ -587,8 +597,9 @@ class Command(BaseCommand):
             }
         )
 
-        # Active demo notification for admin
-        admin_user = User.objects.filter(role=Role.ADMIN.value, is_active=True).first()
+        # Ensure Administrator Account
+        from accounts.demo_bootstrap import ensure_demo_user
+        admin_user = ensure_demo_user("admin")
         if admin_user:
             PlatformNotification.objects.update_or_create(
                 recipient=admin_user,

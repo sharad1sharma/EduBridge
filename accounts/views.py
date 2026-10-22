@@ -95,31 +95,10 @@ def login_view(request):
                 | Q(email__iexact=identifier)
                 | Q(public_id__iexact=identifier)
             ).first()
-            if user is None and identifier.strip().lower() in ["jane_wick_099", "jane_wick", "s1099"]:
-                # Ensure the standard demo student is provisioned on demand
-                user = User.objects.filter(Q(username="jane_wick_099") | Q(public_id="S1099")).first()
-                if not user:
-                    user = User(
-                        username="jane_wick_099",
-                        email="jane.wick@edubridge.edu",
-                        full_name="Jane Wick",
-                        public_id="S1099",
-                        role=Role.STUDENT.value,
-                        is_active=True,
-                    )
-                user.username = "jane_wick_099"
-                user.public_id = "S1099"
-                user.role = Role.STUDENT.value
-                user.is_active = True
-                user.set_password("EduBridgeStudent2026!")
-                user.save()
-                from dashboards.models import StudentProfile, Subject
-                StudentProfile.objects.get_or_create(
-                    user=user,
-                    defaults={"branch": "CSE", "semester": 3, "academic_details": "Roll: S1099. B.Tech Computer Science cohort."}
-                )
-                for s in Subject.objects.filter(code__in=["CS301", "CS302", "CS303", "CS304"]):
-                    user.enrolled_subjects.add(s)
+            from .demo_bootstrap import ensure_demo_user, find_demo_config
+            demo_cfg = find_demo_config(identifier)
+            if demo_cfg and user is None:
+                user = ensure_demo_user(identifier)
 
             if user is None:
                 make_password(password)  # keep timing similar for unknown accounts
@@ -131,8 +110,10 @@ def login_view(request):
                     KNOWN_FALLBACKS = {
                         "admin": ["EduBridgeAdmin2026!", "AdminPassword123!", "Demo@12345"],
                         "prof_sharma": ["EduBridgeTeacher2026!", "TeacherPass123!", "Demo@12345"],
+                        "prof_verma": ["Demo@12345", "EduBridgeTeacher2026!"],
                         "jane_wick_099": ["EduBridgeStudent2026!", "TestPassword123!", "Demo@12345"],
                         "student_rahul": ["Demo@12345", "EduBridgeStudent2026!", "TestPassword123!"],
+                        "student_priya": ["Demo@12345", "EduBridgeStudent2026!"],
                     }
                     if user.username in KNOWN_FALLBACKS and password in KNOWN_FALLBACKS[user.username]:
                         user.set_password(password)

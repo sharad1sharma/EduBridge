@@ -16,7 +16,7 @@ DEMO_ACCOUNTS = {
         "role": Role.ADMIN.value,
         "public_id": None,
         "aliases": ["admin", "admin@edubridge.edu", "a1001"],
-        "passwords": ["EduBridgeAdmin2026!", "Demo@12345", "AdminPassword123!", "admin123"],
+        "passwords": ["AdminPassword123!", "EduBridgeAdmin2026!", "Demo@12345", "admin123"],
     },
     "prof_sharma": {
         "username": "prof_sharma",
@@ -32,7 +32,7 @@ DEMO_ACCOUNTS = {
             "prof.sharma@edubridge.edu",
             "teacher@edubridge.edu",
         ],
-        "passwords": ["EduBridgeTeacher2026!", "Demo@12345", "TeacherPass123!"],
+        "passwords": ["TeacherPass123!", "EduBridgeTeacher2026!", "Demo@12345"],
         "profile": {
             "department": "CSE",
             "designation": "Professor & Head of Department",

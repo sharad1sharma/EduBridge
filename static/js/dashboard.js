@@ -642,6 +642,72 @@
           }
         });
       });
+
+      // Quick Fill Credentials (Click to Auto-Fill)
+      const fillStudentBtn = document.getElementById('fillStudentBtn');
+      const fillTeacherBtn = document.getElementById('fillTeacherBtn');
+      const fillAdminBtn = document.getElementById('fillAdminBtn');
+      const pwInput = document.getElementById('id_password') || document.querySelector('input[name="password"]');
+
+      function flashSuccess(btn) {
+        if (!btn) return;
+        const origBorder = btn.style.borderColor;
+        const origBg = btn.style.background;
+        btn.style.borderColor = '#10B981';
+        btn.style.background = '#ECFDF5';
+        setTimeout(() => {
+          btn.style.borderColor = origBorder;
+          btn.style.background = origBg;
+        }, 600);
+      }
+
+      if (fillStudentBtn && idInput) {
+        fillStudentBtn.addEventListener('click', function () {
+          const tab = document.getElementById('tabStudent');
+          if (tab) tab.click();
+          idInput.value = 'jane_wick_099';
+          idInput.dispatchEvent(new Event('input', { bubbles: true }));
+          idInput.dispatchEvent(new Event('change', { bubbles: true }));
+          if (pwInput) {
+            pwInput.value = 'EduBridgeStudent2026!';
+            pwInput.dispatchEvent(new Event('input', { bubbles: true }));
+            pwInput.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+          flashSuccess(this);
+        });
+      }
+
+      if (fillTeacherBtn && idInput) {
+        fillTeacherBtn.addEventListener('click', function () {
+          const tab = document.getElementById('tabTeacher');
+          if (tab) tab.click();
+          idInput.value = 'prof_sharma';
+          idInput.dispatchEvent(new Event('input', { bubbles: true }));
+          idInput.dispatchEvent(new Event('change', { bubbles: true }));
+          if (pwInput) {
+            pwInput.value = 'TeacherPass123!';
+            pwInput.dispatchEvent(new Event('input', { bubbles: true }));
+            pwInput.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+          flashSuccess(this);
+        });
+      }
+
+      if (fillAdminBtn && idInput) {
+        fillAdminBtn.addEventListener('click', function () {
+          const tab = document.getElementById('tabAdmin');
+          if (tab) tab.click();
+          idInput.value = 'admin';
+          idInput.dispatchEvent(new Event('input', { bubbles: true }));
+          idInput.dispatchEvent(new Event('change', { bubbles: true }));
+          if (pwInput) {
+            pwInput.value = 'AdminPassword123!';
+            pwInput.dispatchEvent(new Event('input', { bubbles: true }));
+            pwInput.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+          flashSuccess(this);
+        });
+      }
     }
 
     // 7. Interactive Administration Suite & Roadmap Modals

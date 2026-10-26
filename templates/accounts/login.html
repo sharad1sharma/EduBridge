@@ -52,6 +52,69 @@
     </button>
   </form>
 
+  <style>
+    .quick-fill-card:hover {
+      border-color: #6366F1 !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+      transform: translateY(-1px);
+    }
+    @media (max-width: 480px) {
+      .quick-fill-grid {
+        grid-template-columns: 1fr !important;
+      }
+    }
+  </style>
+
+  <!-- Quick Fill Credentials (Click to Auto-Fill) -->
+  <div style="margin-top: 1.5rem; padding: 1rem 1.15rem; background: #F8FAFC; border-radius: var(--radius-md, 12px); border: 1px dashed var(--border-subtle, #CBD5E1);">
+    <div style="font-size: 0.78rem; font-weight: 800; color: #475569; letter-spacing: 0.03em; margin-bottom: 0.85rem; display: flex; align-items: center; gap: 0.45rem;">
+      <span style="color: #F97316; font-size: 0.95rem;">⚡</span>
+      <span>QUICK FILL CREDENTIALS (CLICK TO AUTO-FILL):</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.85rem;" class="quick-fill-grid">
+      <!-- Student Card -->
+      <button type="button" id="fillStudentBtn" class="quick-fill-card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 0.85rem 0.65rem; text-align: center; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+        <div style="font-weight: 700; color: #2563EB; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 0.35rem;">
+          <span>🎓</span>
+          <span>Student</span>
+        </div>
+        <div>
+          <span class="mono" style="background: #F1F5F9; border-radius: 6px; padding: 0.2rem 0.65rem; font-size: 0.825rem; font-weight: 600; color: #0F172A; display: inline-block;">jane_wick_099</span>
+        </div>
+        <div style="font-size: 0.735rem; color: #64748B; font-weight: 500;">
+          Pass: EduBridgeStudent2026!
+        </div>
+      </button>
+
+      <!-- Teacher Card -->
+      <button type="button" id="fillTeacherBtn" class="quick-fill-card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 0.85rem 0.65rem; text-align: center; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+        <div style="font-weight: 700; color: #4F46E5; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 0.35rem;">
+          <span>👩‍🏫</span>
+          <span>Teacher</span>
+        </div>
+        <div>
+          <span class="mono" style="background: #F1F5F9; border-radius: 6px; padding: 0.2rem 0.65rem; font-size: 0.825rem; font-weight: 600; color: #0F172A; display: inline-block;">prof_sharma (or T1001)</span>
+        </div>
+        <div style="font-size: 0.735rem; color: #64748B; font-weight: 500;">
+          Pass: TeacherPass123!
+        </div>
+      </button>
+
+      <!-- Administrator Card -->
+      <button type="button" id="fillAdminBtn" class="quick-fill-card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 0.85rem 0.65rem; text-align: center; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+        <div style="font-weight: 700; color: #DC2626; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 0.35rem;">
+          <span>🛡️</span>
+          <span>Administrator</span>
+        </div>
+        <div>
+          <span class="mono" style="background: #F1F5F9; border-radius: 6px; padding: 0.2rem 0.65rem; font-size: 0.825rem; font-weight: 600; color: #0F172A; display: inline-block;">admin</span>
+        </div>
+        <div style="font-size: 0.735rem; color: #64748B; font-weight: 500;">
+          Pass: AdminPassword123!
+        </div>
+      </button>
+    </div>
+  </div>
 
   <!-- Bottom Links & Password Recovery -->
   <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-subtle); text-align: center; font-size: 0.85rem;">
